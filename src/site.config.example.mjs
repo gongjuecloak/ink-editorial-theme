@@ -1,14 +1,14 @@
 // ============================================
-// 云图札记 - 站点配置
+// 我的博客 - 站点配置
 // 只保留必须手动配置的项，分类/标签从文章 frontmatter 动态获取
 // ============================================
 
 // ----- 站点信息 -----
 export const SITE = {
-  title: '云图札记',
-  subtitle: '记录云端与图景之间的思考',
+  title: '我的博客',
+  subtitle: '分享知识与思考',
   description: '在云端俯瞰图景，在图景中寻找云的方向',
-  url: 'https://blog.lzplus.top',
+  url: 'https://your-blog.com',
   startYear: 2022,
   // 深度栏目：手动指定 slug（首页「深度」板块）
   featuredSlugs: [
@@ -25,7 +25,7 @@ export const SITE = {
 
 // ----- 博主信息（只配置一次，全局引用） -----
 export const AUTHOR = {
-  name: 'Cloak_Zeng',
+  name: 'YourName',
   bio: 'P社战帅 / 游戏爱好者 / 写作者',
   motto: '在云端俯瞰图景，在图景中寻找云的方向。',
   description: '一个在云端与图景之间探索的人，相信好的设计和好的代码一样，都是简洁而有力的表达。',
@@ -43,9 +43,9 @@ export const NAV_LINKS = [
 
 // ----- 社交链接 -----
 export const SOCIAL_LINKS = [
-  { name: 'GitHub', icon: 'github', url: 'https://github.com/gongjuecloak' },
+  { name: 'GitHub', icon: 'github', url: 'https://github.com/yourusername' },
   { name: 'B站', icon: 'bilibili', url: 'https://space.bilibili.com/3054324' },
-  { name: '邮箱', icon: 'mail', url: 'mailto:763771418@qq.com' }
+  { name: '邮箱', icon: 'mail', url: 'mailto:your-email@qq.com' }
 ];
 
 // ----- 图片优化配置 -----

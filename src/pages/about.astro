@@ -3,8 +3,8 @@ import MainLayout from "../layouts/MainLayout.astro";
 import { SITE, AUTHOR, SOCIAL_LINKS } from "../site.config.mjs";
 import steamData from "../steam_games.json";
 import friendsData from "../friends.json";
-import healthData from '../friends_health.json';
-const friendHealth = healthData as Record<string, boolean>;
+// friendHealth managed externally
+const friendHealth: Record<string, boolean> = {};
 ---
 
 <MainLayout title="关于" description={AUTHOR.description}>
@@ -93,7 +93,7 @@ const friendHealth = healthData as Record<string, boolean>;
     </div>
 
     <!-- 游戏时长榜 -->
-    {steamData.top_games.length > 0 && <div class="about-section card">
+    <div class="about-section card">
       <div class="section-header">
         <div class="section-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="10" y1="12" x2="10" y2="12"/><path d="M15 9h4"/><path d="M15 12h4"/><path d="M15 15h4"/></svg>
@@ -120,14 +120,14 @@ const friendHealth = healthData as Record<string, boolean>;
             <div class="game-info">
               <div class="game-header">
                 <span class="game-name">{game.name}</span>
-                <span class="game-hours">{game.playtime_hours.toLocaleString()}h</span>
+                <span class="game-hours">{game.playtime_hours?.toLocaleString?.() ?? 0}h</span>
               </div>
               {game.achievements ? (
                 <div class="game-achieve">
                   <div class="achieve-bar-bg">
-                    <div class="achieve-bar-fill" style={`width: ${game.achievements.percentage}%`} />
+                    <div class="achieve-bar-fill" style={`width: ${game.achievements?.percentage ?? 0}%`} />
                   </div>
-                  <span class="achieve-text">{game.achievements.unlocked}/{game.achievements.total} 成就</span>
+                  <span class="achieve-text">{game.achievements?.unlocked ?? 0}/{game.achievements?.total ?? 0} 成就</span>
                 </div>
               ) : (
                 <div class="game-achieve">
@@ -138,16 +138,16 @@ const friendHealth = healthData as Record<string, boolean>;
           </div>
         ))}
       </div>
-    </div>}
+    </div>
 
     <!-- 友情链接 -->
-    {friendsData.length > 0 && <div class="about-section card about-links-section">
+    <div class="about-section card about-links-section">
       <div class="section-header">
         <div class="section-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
         <h2 class="section-title">友情链接</h2>
-        <a href="#"  /* Replace with your friend link application URL */ target="_blank" rel="noopener" class="apply-friend-btn">
+        <a href="https://github.com/gongjuecloak/blog-comments/issues/new?template=friend-link.yml" target="_blank" rel="noopener" class="apply-friend-btn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
           申请友链
         </a>
@@ -164,7 +164,7 @@ const friendHealth = healthData as Record<string, boolean>;
                 <span class="friend-name">{friend.name}</span>
                 <span class="friend-desc">{friend.desc}</span>
               </div>
-              {friendHealth[friend.url] === false ? (
+              {(friendHealth?.[friend.url] === false) ? (
                 <span class="fc-badge" aria-label="站点已离线">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/>

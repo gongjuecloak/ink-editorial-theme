@@ -1,0 +1,792 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import changelogData from '../changelog.json';
+import { SITE, AUTHOR } from '../site.config.mjs';
+
+const latestVersion = changelogData[0].version;
+const latestDate = changelogData[0].date;
+---
+
+<MainLayout title={`Ink Editorial ${latestVersion} — 阅读优先的博客主题`} description="Ink Editorial 是基于 Astro 构建的阅读优先博客主题，衬线排版，暖纸底色，零圆角零阴影的克制美学。">
+<main class="theme-page">
+
+  <!-- Hero: Soft Studio 风格 -->
+  <section class="theme-hero">
+    <div class="theme-hero-bg"></div>
+    <div class="theme-hero-inner">
+      <div class="theme-hero-badge">
+        <span class="badge-dot"></span>
+        <span>Open Source · Astro · {latestVersion}</span>
+      </div>
+      <h1 class="theme-hero-title">Ink <em>Editorial</em></h1>
+      <p class="theme-hero-desc">为长文阅读而设计的博客主题。衬线排版、暖纸底色、克制美学——让阅读本身成为最流畅的体验。</p>
+      <div class="theme-hero-stats">
+        <div class="stat-item">
+          <span class="stat-num">{latestVersion}</span>
+          <span class="stat-label">当前版本</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">{changelogData.length}</span>
+          <span class="stat-label">版本迭代</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">50+</span>
+          <span class="stat-label">博文收录</span>
+        </div>
+      </div>
+      <div class="theme-hero-actions">
+        <a href="/" class="btn-primary">返回博客</a>
+        <a href="/changelog" class="btn-secondary">更新日志</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Preview: 排版实景预览（对应 video consultation preview） -->
+  <section class="theme-section" id="preview">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">LIVE PREVIEW</span>
+        <h2 class="section-title">排版实景</h2>
+        <p class="section-desc">不是截图，是真实的渲染效果。每一个字符、每一行间距，都经过精心调校。</p>
+      </div>
+      <div class="preview-card">
+        <div class="preview-bar">
+          <span class="bar-dot"></span><span class="bar-dot"></span><span class="bar-dot"></span>
+          <span class="bar-url">blog.lzplus.top — Ink Editorial Rendering</span>
+        </div>
+        <div class="preview-body">
+          <h2>设计是一种对本质的凝练</h2>
+          <div class="preview-byline">Cloak_Zeng · 2026 年 6 月</div>
+          <p>好的排版不是让读者注意到文字有多美，而是让读者忘记文字的存在，完全沉浸在内容之中。这即是「阅读优先」的核心理念——每一处字号、行高、间距的选择，都服务于一个目标：让阅读本身成为最流畅的体验。</p>
+          <blockquote>排版是思想的建筑。它不应该喧宾夺主，而应该像空气一样——你只有在它消失的时候才会意识到它的存在。</blockquote>
+          <p>正文色 <code>#2c2c2c</code> 而非纯黑，底色 <code>#FAF8F5</code> 而非纯白。这种微妙的暖灰组合降低了长时间阅读的视觉疲劳，像是旧书的纸张一样带着温度。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features: 功能目录（对应 specialist directory） -->
+  <section class="theme-section" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">FEATURES</span>
+        <h2 class="section-title">功能目录</h2>
+        <p class="section-desc">每一项功能都围绕「阅读优先」理念设计，克制但不简陋。</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <h3>衬线排版</h3>
+          <p>Noto Serif SC 17px / 行高 2.0 / 首行缩进 2em，中文阅读的黄金比例。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+          </div>
+          <h3>三栏布局</h3>
+          <p>目录 · 正文 · 信息栏，桌面端完整阅读体验，移动端自适应堆叠。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <h3>独立搜索页</h3>
+          <p>Pagefind 全文索引，搜索是独立页面而非弹窗，不打断阅读流。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Twikoo 评论</h3>
+          <p>轻量评论系统，侧边悬浮入口，不干扰正文阅读节奏。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h3>系列文集</h3>
+          <p>自动识别文章系列，侧边栏导航 + 进度条，系列阅读不迷路。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>友链健康检测</h3>
+          <p>构建时服务端 HEAD 请求检测友链可达性，离线站点自动标注。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <h3>归档筛选</h3>
+          <p>URL 参数驱动分类/标签筛选（交集），归档页一站式浏览。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3>暗色模式</h3>
+          <p>CSS 变量驱动的完整暗色适配，阅读体验无缝切换。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Design System: 设计体系追踪（对应 health tracking） -->
+  <section class="theme-section" id="design-system">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">DESIGN SYSTEM</span>
+        <h2 class="section-title">设计体系</h2>
+        <p class="section-desc">每一个设计 token 都有名字、有理由、有出处。</p>
+      </div>
+      <div class="design-grid">
+        <div class="design-card design-colors">
+          <h4>核心色板</h4>
+          <div class="color-row">
+            <div class="color-swatch" style="background:#FAF8F5"></div>
+            <div class="color-info"><code>#FAF8F5</code><span>暖纸底色</span></div>
+          </div>
+          <div class="color-row">
+            <div class="color-swatch" style="background:#C45209"></div>
+            <div class="color-info"><code>#C45209</code><span>铁锈橙 · 主色</span></div>
+          </div>
+          <div class="color-row">
+            <div class="color-swatch" style="background:#2c2c2c"></div>
+            <div class="color-info"><code>#2c2c2c</code><span>正文墨色</span></div>
+          </div>
+          <div class="color-row">
+            <div class="color-swatch" style="background:#d6cec4"></div>
+            <div class="color-info"><code>#d6cec4</code><span>边框暖灰</span></div>
+          </div>
+          <div class="color-row">
+            <div class="color-swatch" style="background:#6d5d4b"></div>
+            <div class="color-info"><code>#6d5d4b</code><span>铁锈橙浅底</span></div>
+          </div>
+        </div>
+        <div class="design-card design-typo">
+          <h4>排版阶梯</h4>
+          <div class="typo-row">
+            <span class="typo-size">17px</span>
+            <span class="typo-detail">Noto Serif SC · 正文 · 行高 2.0</span>
+          </div>
+          <div class="typo-row">
+            <span class="typo-size mono">JetBrains Mono</span>
+            <span class="typo-detail">标题 · 等宽 · 代码</span>
+          </div>
+          <div class="typo-row">
+            <span class="typo-size">0.78rem</span>
+            <span class="typo-detail">侧边栏 · 辅助信息</span>
+          </div>
+          <div class="typo-row">
+            <span class="typo-size">680px</span>
+            <span class="typo-detail">最佳阅读宽度</span>
+          </div>
+        </div>
+        <div class="design-card design-rules">
+          <h4>设计规则</h4>
+          <div class="rule-item"><span class="rule-val">0px</span><span>圆角 — 零装饰</span></div>
+          <div class="rule-item"><span class="rule-val">none</span><span>阴影 — 零浮夸</span></div>
+          <div class="rule-item"><span class="rule-val">border-left: 3px</span><span>强调 — 边框代色块</span></div>
+          <div class="rule-item"><span class="rule-val">var(--*)</span><span>CSS 变量驱动全站</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="theme-section" id="tech">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">TECH STACK</span>
+        <h2 class="section-title">技术栈</h2>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <span class="tech-name">Astro SSR</span>
+          <span class="tech-desc">岛屿架构，零 JS 默认</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-name">Cloudflare Pages</span>
+          <span class="tech-desc">边缘部署，全球加速</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-name">Pagefind</span>
+          <span class="tech-desc">静态全文搜索索引</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-name">Twikoo</span>
+          <span class="tech-desc">轻量评论系统</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-name">Google Fonts</span>
+          <span class="tech-desc">自托管字体文件</span>
+        </div>
+        <div class="tech-item">
+          <span class="tech-name">JSON-LD</span>
+          <span class="tech-desc">结构化数据 SEO</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA: 访问博客（对应 app download CTA） -->
+  <section class="theme-section theme-cta" id="cta">
+    <div class="section-container">
+      <div class="cta-inner">
+        <div class="cta-badge">{latestVersion}</div>
+        <h2 class="cta-title">开始阅读</h2>
+        <p class="cta-desc">{latestVersion} · {latestDate} 更新 · {SITE.title} 已收录 50+ 篇原创博文</p>
+        <div class="cta-actions">
+          <a href="https://github.com/gongjuecloak/ink-editorial-theme" class="btn-primary btn-lg">前往使用</a>
+          <a href="/changelog" class="btn-secondary btn-lg">查看日志</a>
+        </div>
+        <p class="cta-footer">Built with Astro · Deployed on Cloudflare Pages · {AUTHOR.name}</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<style>
+  /* ===== 全局 ===== */
+  .theme-page {
+    background: var(--bg-primary);
+    min-height: 100vh;
+  }
+
+  /* ===== Hero: Soft Studio ===== */
+  .theme-hero {
+    position: relative;
+    padding: 6rem 2rem 4rem;
+    overflow: hidden;
+  }
+
+  .theme-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #FAF8F5 0%, #f5efe6 40%, #ede4d3 100%);
+    z-index: 0;
+  }
+
+  .theme-hero-bg::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 50%;
+    height: 80%;
+    background: radial-gradient(ellipse, rgba(196, 82, 9, 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .theme-hero-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .theme-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(196, 82, 9, 0.08);
+    border: 1px solid rgba(196, 82, 9, 0.15);
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--color-primary);
+    margin-bottom: 1.5rem;
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .theme-hero-title {
+    font-family: var(--font-mono);
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .theme-hero-title em {
+    font-style: normal;
+    color: var(--color-primary);
+    font-weight: 400;
+  }
+
+  .theme-hero-desc {
+    font-family: "Noto Serif SC", serif;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin-bottom: 2rem;
+  }
+
+  .theme-hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-num {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--color-primary);
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    background: var(--color-primary);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    border-radius: 8px;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover {
+    background: #b34a08;
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    background: transparent;
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--color-primary);
+    border-radius: 8px;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(196, 82, 9, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .btn-lg {
+    padding: 14px 32px;
+    font-size: 1rem;
+  }
+
+  .theme-hero-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  /* ===== Sections ===== */
+  .theme-section {
+    padding: 4rem 2rem;
+  }
+
+  .section-container {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-primary);
+    background: rgba(196, 82, 9, 0.06);
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem;
+  }
+
+  .section-desc {
+    font-family: "Noto Serif SC", serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  /* ===== Preview Card ===== */
+  .preview-card {
+    background: #FAF8F5;
+    border: 1px solid #d6cec4;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: #ede4d3;
+    border-bottom: 1px solid #d6cec4;
+  }
+
+  .bar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #C45209;
+    opacity: 0.3;
+  }
+
+  .bar-url {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #6d5d4b;
+    margin-left: 8px;
+  }
+
+  .preview-body {
+    padding: 2rem 2.5rem;
+    font-family: "Noto Serif SC", serif;
+    font-size: 17px;
+    line-height: 2.0;
+    color: #2c2c2c;
+  }
+
+  .preview-body h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-byline {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: #6d5d4b;
+    margin-bottom: 1.5rem;
+  }
+
+  .preview-body p {
+    text-indent: 2em;
+    margin-bottom: 1.4em;
+  }
+
+  .preview-body blockquote {
+    border-left: 3px solid #C45209;
+    padding: 0.6em 1em;
+    margin: 1.6em 0;
+    background: rgba(196, 82, 9, 0.06);
+    color: #555;
+  }
+
+  .preview-body code {
+    font-family: var(--font-mono);
+    background: rgba(196, 82, 9, 0.08);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #C45209;
+  }
+
+  /* ===== Features Grid ===== */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(196, 82, 9, 0.06);
+    border-radius: 8px;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+  }
+
+  .feature-card h3 {
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-card p {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  /* ===== Design System ===== */
+  .design-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .design-card {
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  .design-card h4 {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 4px;
+  }
+
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid #d6cec4;
+    flex-shrink: 0;
+  }
+
+  .color-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .color-info code {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-primary);
+  }
+
+  .color-info span {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+  }
+
+  .typo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .typo-size {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    min-width: 5em;
+  }
+
+  .typo-size.mono {
+    font-size: 0.82rem;
+  }
+
+  .typo-detail {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+
+  .rule-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .rule-val {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(196, 82, 9, 0.06);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .rule-item span:last-child {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+
+  /* ===== Tech Stack ===== */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .tech-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  .tech-name {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .tech-desc {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+  }
+
+  /* ===== CTA ===== */
+  .theme-cta {
+    background: linear-gradient(135deg, #FAF8F5 0%, #f5efe6 100%);
+  }
+
+  .cta-inner {
+    text-align: center;
+    padding: 3rem 0;
+  }
+
+  .cta-badge {
+    display: inline-flex;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(196, 82, 9, 0.08);
+    border: 1px solid rgba(196, 82, 9, 0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .cta-title {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+  }
+
+  .cta-desc {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  .cta-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .cta-footer {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    margin-top: 2rem;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .theme-hero { padding: 3rem 1.5rem 2rem; }
+    .theme-hero-title { font-size: 2rem; }
+    .theme-hero-desc { font-size: 0.95rem; }
+    .theme-hero-stats { gap: 1rem; }
+    .stat-num { font-size: 1.1rem; }
+    .theme-section { padding: 2.5rem 1.5rem; }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .design-grid { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: 1fr; }
+    .preview-body { padding: 1.5rem; font-size: 15px; }
+    .cta-actions { flex-direction: column; align-items: center; }
+  }
+
+  @media (max-width: 480px) {
+    .theme-hero { padding: 2rem 1rem 1.5rem; }
+    .theme-hero-title { font-size: 1.6rem; }
+    .theme-hero-desc { font-size: 0.85rem; }
+    .theme-hero-stats { flex-direction: column; gap: 0.5rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .theme-hero-actions { flex-direction: column; }
+    .btn-lg { padding: 12px 24px; }
+  }
+</style>
+</MainLayout>

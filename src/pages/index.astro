@@ -4,7 +4,8 @@ import { getCollection } from 'astro:content';
 import { SITE, AUTHOR } from '../site.config.mjs';
 import { sortPosts } from '../utils';
 
-const allPosts = await getCollection('blog');
+let allPosts = [];
+try { allPosts = await getCollection('blog'); } catch(e) { allPosts = []; }
 const posts = sortPosts(allPosts);
 const totalPosts = posts.length;
 
@@ -25,8 +26,8 @@ const seriesList = Object.values(seriesMap).sort((a, b) => b.count - a.count);
 const fragmentPosts = posts.slice(0, 10);
 
 // NOW 条数据（读取 now.json）
-// NOW data is optional
-let nowRaw = '[]'; try { const fs = await import('fs/promises'); nowRaw = await fs.readFile('src/now.json', 'utf-8'); } catch(e) {}
+const fs = await import('fs/promises');
+const nowRaw = await fs.readFile('src/now.json', 'utf-8');
 const nowData = JSON.parse(nowRaw);
 const nowLogs = nowData.slice(0, 5).map(item => ({
   text: item.text.length > 30 ? item.text.slice(0, 30) + '...' : item.text,

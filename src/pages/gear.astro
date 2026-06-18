@@ -3,8 +3,8 @@ import MainLayout from "../layouts/MainLayout.astro";
 import { SITE, AUTHOR } from "../site.config.mjs";
 import gearData from "../gear.json";
 
-const totalItems = gearData.reduce((s, g) => s + g.items.length, 0);
-const categoryStats = gearData.map(g => ({ name: g.category, count: g.items.length }));
+const totalItems = (gearData ?? []).reduce((s, g) => s + (g.items?.length ?? 0), 0);
+const categoryStats = (gearData ?? []).map(g => ({ name: g.category, count: g.items?.length ?? 0 }));
 
 const STATUS_MAP = {
   active: { label: '服役中', color: '#22c55e', bg: 'rgba(34,197,94,0.08)', border: 'rgba(34,197,94,0.2)' },
@@ -34,7 +34,7 @@ const STATUS_MAP = {
       </div>
 
       <!-- 分类区块 - 列表式 -->
-      {gearData.length === 0 ? <p class="empty-state">暂无装备数据，请在 gear.json 中添加。</p> : gearData.map((section) => (
+      {gearData.map((section) => (
         <div class="gear-section" data-category={section.category}>
           <div class="section-header">
             <h2 class="section-title">{section.category}</h2>
