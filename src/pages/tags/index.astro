@@ -1,0 +1,110 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { getTags } from "../../utils";
+
+const allPosts = await getCollection("blog");
+const tags = getTags(allPosts);
+const sortedTags = [...tags.entries()].sort((a, b) => b[1] - a[1]);
+const maxCount = Math.max(...tags.values());
+---
+
+<MainLayout title="全部标签" description="按标签浏览文章">
+  <div class="tags-page">
+    <div class="page-hero">
+      <div class="page-hero-left">
+        <div class="page-hero-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+            <line x1="7" y1="7" x2="7.01" y2="7"/>
+          </svg>
+        </div>
+        <div class="page-hero-text">
+          <h1>全部标签</h1>
+          <p>{sortedTags.length} 个标签</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tag-cloud">
+      {sortedTags.map(([name, count]) => {
+        const size = 0.8125 + (count / maxCount) * 0.5;
+        return (
+          <a href={`/archive?tag=${encodeURIComponent(name)}`} class="tag-item" style={`font-size: ${size}rem`}>
+            {name}<sup>{count}</sup>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .tags-page {
+    max-width: var(--max-width, 800px);
+    margin: 0 auto;
+    padding: var(--gap-lg, 24px) var(--gap-md, 16px);
+  }
+
+  .page-hero {
+    margin-bottom: var(--gap-xl, 32px);
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md, 16px);
+  }
+
+  .page-hero-left {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md, 16px);
+  }
+
+  .page-hero-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .page-hero-text h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+    font-family: "Noto Serif SC", serif;
+  }
+
+  .page-hero-text p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-sm, 8px) var(--gap-md, 16px);
+  }
+
+  .tag-item {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.15s;
+    line-height: 1.6;
+  }
+
+  .tag-item:hover {
+    opacity: 0.7;
+  }
+
+  .tag-item sup {
+    font-size: 0.7em;
+    color: var(--text-tertiary);
+    margin-left: 2px;
+  }
+</style>

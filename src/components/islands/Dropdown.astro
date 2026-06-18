@@ -1,0 +1,160 @@
+---
+interface DropdownItem {
+  label: string;
+  href?: string;
+  onClick?: string;
+}
+interface Props {
+  label?: string;
+  items?: DropdownItem[];
+}
+const {
+  label = "操作菜单",
+  items = [
+    { label: "编辑", onClick: "window.showToast('已点击：编辑', 'info')" },
+    { label: "复制", onClick: "window.showToast('已点击：复制', 'info')" },
+    { label: "删除", onClick: "window.showToast('已点击：删除', 'error')" },
+  ],
+} = Astro.props;
+---
+
+<div class="dropdown" id="dropdown-root">
+  <button class="dropdown-trigger" id="dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+    {label}
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </button>
+  <div class="dropdown-panel" id="dropdown-panel" hidden>
+    {items.map((item) => (
+      item.href ? (
+        <a href={item.href} class="dropdown-item">{item.label}</a>
+      ) : (
+        <button
+          class="dropdown-item"
+          onclick={item.onClick}
+          type="button"
+        >{item.label}</button>
+      )
+    ))}
+  </div>
+</div>
+
+<style>
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    transition: border-color 0.1s, background 0.1s, color 0.1s;
+  }
+  .dropdown-trigger:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+  }
+  .dropdown-trigger svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.2s;
+  }
+  .dropdown.open .dropdown-trigger svg {
+    transform: rotate(180deg);
+  }
+  .dropdown-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 180px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-md);
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.15s, visibility 0.15s, transform 0.15s;
+  }
+  .dropdown-panel:not([hidden]) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    text-align: left;
+    transition: background 0.1s, color 0.1s;
+  }
+  .dropdown-item:hover {
+    background: var(--bg-hover);
+    color: var(--color-primary);
+  }
+  .dropdown-item:first-child {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+  .dropdown-item:last-child {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      var dropdown = document.getElementById('dropdown-root');
+      if (!dropdown) return;
+      var trigger = document.getElementById('dropdown-trigger');
+      var panel = document.getElementById('dropdown-panel');
+      if (!trigger || !panel) return;
+
+      trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = !panel.hasAttribute('hidden');
+        if (isOpen) {
+          panel.setAttribute('hidden', '');
+          trigger.setAttribute('aria-expanded', 'false');
+          dropdown.classList.remove('open');
+        } else {
+          panel.removeAttribute('hidden');
+          trigger.setAttribute('aria-expanded', 'true');
+          dropdown.classList.add('open');
+        }
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target)) {
+          panel.setAttribute('hidden', '');
+          trigger.setAttribute('aria-expanded', 'false');
+          dropdown.classList.remove('open');
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          panel.setAttribute('hidden', '');
+          trigger.setAttribute('aria-expanded', 'false');
+          dropdown.classList.remove('open');
+        }
+      });
+    });
+  })();
+</script>

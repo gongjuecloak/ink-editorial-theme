@@ -1,0 +1,158 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+import { SITE } from '../../site.config.mjs';
+
+const allPosts = await getCollection('blog');
+
+// 统计所有系列
+const seriesMap: Record<string, { name: string; posts: any[] }> = {};
+allPosts.forEach(post => {
+  if (post.data.series) {
+    if (!seriesMap[post.data.series]) {
+      seriesMap[post.data.series] = { name: post.data.series, posts: [] };
+    }
+    seriesMap[post.data.series].posts.push(post);
+  }
+});
+
+const seriesList = Object.values(seriesMap).sort((a, b) => b.posts.length - a.posts.length);
+---
+
+<MainLayout title={`系列文集 · ${SITE.title}`}>
+  <div class="page">
+    <header class="page-header">
+      <h1 class="page-title">系列文集</h1>
+      <p class="page-sub">所有文章系列，按文章数排序</p>
+    </header>
+
+    <div class="series-grid">
+      {seriesList.map(series => (
+        <a href={`/series/${encodeURIComponent(series.name)}`} class="series-card">
+          <div class="series-name">{series.name}</div>
+          <div class="series-meta">
+            <span class="series-count">{series.posts.length} 篇</span>
+            <span class="series-arrow">▸</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    {seriesList.length === 0 && (
+      <div class="empty-state">
+        <p>暂无系列文集。</p>
+        <p class="empty-hint">在文章的 Frontmatter 里加上 <code>series: 系列名</code> 即可创建系列。</p>
+      </div>
+    )}
+  </div>
+</MainLayout>
+
+<style>
+  .page {
+    max-width: var(--max-width, 1200px);
+    margin: 0 auto;
+    padding: var(--gap-lg, 2rem);
+  }
+
+  .page-header {
+    margin-bottom: var(--gap-2xl, 4rem);
+  }
+
+  .page-title {
+    font-family: var(--font-mono, monospace);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--text-primary, #1a1a1a);
+    margin-bottom: var(--gap-sm, 0.5rem);
+  }
+
+  .page-sub {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    color: var(--text-secondary, #4a4a4a);
+    letter-spacing: 0.02em;
+  }
+
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--gap-md, 1rem);
+  }
+
+  .series-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    text-decoration: none;
+    border: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    border-radius: var(--radius-sm, 4px);
+    background: var(--bg-card, #faf8f5);
+    transition: opacity var(--transition-fast, 0.1s linear), transform var(--transition-fast, 0.1s linear), border-color var(--transition-fast, 0.1s linear), background-color var(--transition-fast, 0.1s linear), color var(--transition-fast, 0.1s linear);
+  }
+
+  .series-card:hover {
+    border-color: var(--color-primary, #C45209);
+    background: var(--color-primary-bg, rgba(196,82,9,0.06));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .series-name {
+    font-family: var(--font-mono, monospace);
+    font-size: 1.0rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    transition: color var(--transition-fast, 0.1s linear);
+  }
+
+  .series-card:hover .series-name {
+    color: var(--color-primary, #C45209);
+  }
+
+  .series-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    color: var(--text-tertiary, #888);
+  }
+
+  .series-count {
+    white-space: nowrap;
+  }
+
+  .series-arrow {
+    color: var(--color-primary, #C45209);
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity var(--transition-fast, 0.1s linear), transform var(--transition-fast, 0.1s linear), border-color var(--transition-fast, 0.1s linear), background-color var(--transition-fast, 0.1s linear), color var(--transition-fast, 0.1s linear);
+  }
+
+  .series-card:hover .series-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--gap-2xl, 4rem) 0;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-tertiary, #888);
+    font-size: 0.9rem;
+  }
+
+  .empty-hint {
+    font-size: 0.8rem;
+    margin-top: var(--gap-sm, 0.5rem);
+  }
+
+  .empty-hint code {
+    background: var(--color-primary-bg, rgba(196,82,9,0.06));
+    padding: 2px 6px;
+    border-radius: var(--radius-sm, 4px);
+    font-size: 0.78rem;
+  }
+</style>

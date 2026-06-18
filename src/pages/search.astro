@@ -1,0 +1,610 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { sortPosts, getCategories, getCategoryColor, calcReadingTime } from "../utils";
+import FormattedDate from "../components/FormattedDate.astro";
+
+const allPosts = await getCollection("blog");
+const posts = sortPosts(allPosts);
+const categories = getCategories(allPosts);
+
+// SSR: 如果有搜索词，先做一次初始搜索（后续 JS 接管实时搜索）
+const url = new URL(Astro.request.url);
+const initialQuery = url.searchParams.get('q') || '';
+---
+
+<MainLayout title="搜索" description="搜索文章">
+  <div class="search-page">
+    <!-- 页眉 -->
+    <header class="search-header">
+      <span class="search-edition">Search</span>
+      <h1 class="search-title">搜索</h1>
+      <p class="search-tagline">在 {posts.length} 篇文章中找到你需要的内容。</p>
+      <div class="search-rule"></div>
+    </header>
+
+    <!-- 搜索框 -->
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          placeholder="输入标题、描述、标签…"
+          value={initialQuery}
+          autocomplete="off"
+          aria-label="搜索文章"
+          autofocus={!initialQuery}
+        />
+        <button class="search-clear" id="search-clear" aria-label="清除搜索" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="search-meta" id="search-meta">
+        <span id="result-count"></span>
+        <span class="search-sep">·</span>
+        <span id="search-time"></span>
+      </div>
+    </div>
+
+    <!-- 结果区域 -->
+    <div class="results-area" id="results-area">
+      <!-- 初始状态：显示所有分类入口 -->
+      <div class="cat-entrance" id="cat-entrance">
+        <div class="cat-entrance-label">
+          <span class="label-num">→</span>
+          <span class="label-text">按分类浏览</span>
+        </div>
+        <div class="cat-entrance-grid">
+          {[...categories.entries()].sort((a, b) => b[1] - a[1]).map(([name, count]) => {
+            const color = getCategoryColor(name);
+            return (
+              <a class="cat-entrance-item" href={`/archive?category=${encodeURIComponent(name)}`} style={`--cat-color: ${color}`}>
+                <span class="cat-entrance-name" style={`color:${color}`}>{name}</span>
+                <span class="cat-entrance-count">{count} 篇</span>
+              </a>
+            );
+          })}
+        </div>
+        </div>
+
+      <!-- 搜索结果列表 -->
+      <div class="results-list" id="results-list" style="display:none"></div>
+
+      <!-- 空状态 -->
+      <div class="results-empty" id="results-empty" style="display:none">
+        <div class="empty-icon">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </div>
+        <p class="empty-title">没有找到匹配的文章</p>
+        <p class="empty-sub">试试其他关键词，或浏览下面的分类入口</p>
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script is:inline>
+(function() {
+  var searchData = [];
+  var allPosts = [];
+  var currentQuery = '';
+  var startTime = 0;
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function hashColor(name) {
+    var PALETTE = ['#C45209','#2E8B57','#425AEF','#F43F5E','#F59E0B','#A855F7','#06B6D4','#EC4899','#14B8A6','#3B82F6'];
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return PALETTE[Math.abs(hash) % PALETTE.length];
+  }
+
+  function highlightMatch(text, query) {
+    if (!query) return escapeHtml(text);
+    var escaped = escapeHtml(text);
+    var q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var regex = new RegExp('(' + q + ')', 'gi');
+    return escaped.replace(regex, '<mark>$1</mark>');
+  }
+
+  function loadSearchData() {
+    if (searchData.length > 0) return;
+    fetch('/search-index.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        searchData = data;
+        var initQuery = document.getElementById('search-input').value;
+        if (initQuery) {
+          doSearch(initQuery, true);
+        }
+      })
+      .catch(function(e) { console.error('加载搜索数据失败', e); });
+  }
+
+  function calcReadingTime(body) {
+    if (!body) return 2;
+    var words = body.trim().split(/\s+/).length;
+    return Math.max(1, Math.ceil(words / 200));
+  }
+
+  function doSearch(query, isInit) {
+    currentQuery = query;
+    var input = document.getElementById('search-input');
+    var clearBtn = document.getElementById('search-clear');
+    var metaEl = document.getElementById('search-meta');
+    var catEntrance = document.getElementById('cat-entrance');
+    var resultsList = document.getElementById('results-list');
+    var resultsEmpty = document.getElementById('results-empty');
+    var countEl = document.getElementById('result-count');
+    var timeEl = document.getElementById('search-time');
+
+    if (!isInit && input) input.value = query;
+    if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
+
+    // Update URL without reload
+    if (!isInit) {
+      var newUrl = query ? '/search?q=' + encodeURIComponent(query) : '/search';
+      history.replaceState(null, '', newUrl);
+    }
+
+    if (!query) {
+      if (catEntrance) catEntrance.style.display = '';
+      if (resultsList) resultsList.style.display = 'none';
+      if (resultsEmpty) resultsEmpty.style.display = 'none';
+      if (countEl) countEl.textContent = '';
+      if (metaEl) metaEl.style.display = 'none';
+      return;
+    }
+
+    startTime = Date.now();
+    if (metaEl) metaEl.style.display = '';
+
+    var matched = searchData.filter(function(item) {
+      var q = query.toLowerCase();
+      return item.title.toLowerCase().includes(q) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        (item.tags && item.tags.some(function(t) { return t.toLowerCase().includes(q); })) ||
+        (item.category && item.category.toLowerCase().includes(q));
+    });
+
+    if (catEntrance) catEntrance.style.display = 'none';
+
+    if (matched.length === 0) {
+      if (resultsList) resultsList.style.display = 'none';
+      if (resultsEmpty) resultsEmpty.style.display = '';
+      if (countEl) countEl.textContent = '0 个结果';
+      if (timeEl) timeEl.textContent = '用了 ' + (Date.now() - startTime) + 'ms';
+      return;
+    }
+
+    if (resultsEmpty) resultsEmpty.style.display = 'none';
+    if (resultsList) resultsList.style.display = '';
+
+    var elapsed = Date.now() - startTime;
+    if (countEl) countEl.textContent = matched.length + ' 个结果';
+    if (timeEl) timeEl.textContent = elapsed + 'ms';
+
+    resultsList.innerHTML = matched.map(function(item, idx) {
+      var color = hashColor(item.category);
+      var readingTime = calcReadingTime(item.description);
+      var tags = (item.tags || []).slice(0, 4).map(function(t) {
+        return '<span class="result-tag">' + highlightMatch(t, query) + '</span>';
+      }).join('');
+      var num = String(idx + 1).padStart(2, '0');
+      return '<a href="/blog/' + escapeHtml(item.slug) + '" class="result-item" data-num="' + num + '">' +
+        '<span class="result-num">' + num + '</span>' +
+        '<div class="result-body">' +
+          '<div class="result-meta">' +
+            '<span class="result-cat" style="color:' + color + '">' + escapeHtml(item.category) + '</span>' +
+            '<span class="result-sep">·</span>' +
+            '<time class="result-date">' + escapeHtml(item.pubDate) + '</time>' +
+            '<span class="result-sep">·</span>' +
+            '<span class="result-time">' + readingTime + ' min</span>' +
+          '</div>' +
+          '<h2 class="result-title">' + highlightMatch(item.title, query) + '</h2>' +
+          (item.description ? '<p class="result-desc">' + highlightMatch(item.description, query) + '</p>' : '') +
+          (tags ? '<div class="result-tags">' + tags + '</div>' : '') +
+        '</div>' +
+        '<div class="result-arrow">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+        '</div>' +
+      '</a>';
+    }).join('');
+  }
+
+  function setupKeyboardNav() {
+    document.addEventListener('keydown', function(e) {
+      var input = document.getElementById('search-input');
+      if (!input) return;
+      if (e.key === '/' && document.activeElement !== input && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('search-input');
+    var clearBtn = document.getElementById('search-clear');
+
+    loadSearchData();
+    setupKeyboardNav();
+
+    if (input) {
+      input.addEventListener('input', function() {
+        doSearch(input.value.trim());
+      });
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          input.value = '';
+          doSearch('');
+          input.blur();
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        if (input) { input.value = ''; input.focus(); }
+        doSearch('');
+      });
+    }
+  });
+})();
+</script>
+
+<style is:inline>
+  .search-page {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--gap-2xl) var(--gap-xl);
+    padding-bottom: var(--gap-3xl);
+  }
+
+  /* ===== 页眉 ===== */
+  .search-header { margin-bottom: var(--gap-2xl); }
+  .search-edition {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .search-title {
+    font-family: var(--font-serif);
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin: var(--gap-sm) 0 var(--gap-sm) 0;
+  }
+  .search-tagline {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    max-width: 480px;
+    margin: 0 0 var(--gap-xl) 0;
+  }
+  .search-rule {
+    height: 2px;
+    background: var(--color-primary);
+    position: relative;
+  }
+  .search-rule::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 0;
+    width: 60%;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  /* ===== 搜索框 ===== */
+  .search-box {
+    margin-bottom: var(--gap-2xl);
+  }
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+    padding: 14px 18px;
+    border: 1.5px solid var(--border-color-strong);
+    background: var(--bg-card);
+    transition: border-color 0.15s;
+  }
+  .search-input-wrap:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-bg);
+  }
+  .search-icon {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    caret-color: var(--color-primary);
+  }
+  .search-input::placeholder {
+    color: var(--text-tertiary);
+    font-style: italic;
+    font-size: 1rem;
+  }
+  .search-clear {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+  .search-clear:hover { color: var(--text-primary); }
+
+  .search-meta {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    margin-top: var(--gap-sm);
+    gap: 6px;
+  }
+  .search-sep { opacity: 0.4; }
+
+  /* ===== 分类入口 ===== */
+  .cat-entrance-label {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+    margin-bottom: var(--gap-lg);
+    padding-bottom: var(--gap-sm);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .label-num {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    opacity: 0.5;
+  }
+  .label-text {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .cat-entrance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--gap-sm);
+  }
+  .cat-entrance-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--gap-sm) var(--gap-md);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--cat-color);
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .cat-entrance-item:hover {
+    background: var(--bg-hover);
+    border-right-color: var(--cat-color);
+  }
+  .cat-entrance-name {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .cat-entrance-count {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+  }
+
+  /* ===== 结果列表 ===== */
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .result-item {
+    display: grid;
+    grid-template-columns: 3rem 1fr 28px;
+    gap: var(--gap-lg);
+    align-items: start;
+    padding: var(--gap-lg) 0;
+    border-bottom: 1px solid var(--border-color);
+    text-decoration: none;
+    padding-left: var(--gap-md);
+    margin-left: calc(-1 * var(--gap-md));
+    border-left: 3px solid transparent;
+    transition: border-left-color 0.15s, background 0.15s, opacity 0.15s, transform 0.15s;
+    border-radius: 0;
+    opacity: 0;
+    animation: resultFadeIn 0.25s ease forwards;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-item[data-num="01"] { animation-delay: 0.02s; }
+  .result-item[data-num="02"] { animation-delay: 0.05s; }
+  .result-item[data-num="03"] { animation-delay: 0.08s; }
+  .result-item[data-num="04"] { animation-delay: 0.11s; }
+  .result-item[data-num="05"] { animation-delay: 0.14s; }
+  .result-item[data-num="06"] { animation-delay: 0.17s; }
+  .result-item[data-num="07"] { animation-delay: 0.20s; }
+  .result-item[data-num="08"] { animation-delay: 0.23s; }
+  .result-item[data-num="09"] { animation-delay: 0.26s; }
+  .result-item[data-num="10"] { animation-delay: 0.29s; }
+  @keyframes resultFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .result-item:hover {
+    border-left-color: var(--color-primary);
+    background: var(--bg-hover);
+  }
+  .result-item::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(196,82,9,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+    pointer-events: none;
+  }
+  .result-item:active::after {
+    transform: translateX(100%);
+  }
+  .result-item:hover .result-title {
+    color: var(--color-primary);
+  }
+  .result-item:hover .result-arrow {
+    opacity: 1;
+    transform: translateX(4px);
+  }
+  .result-num {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--border-color-strong);
+    line-height: 1;
+    user-select: none;
+    padding-top: 2px;
+    transition: color 0.2s;
+  }
+  .result-item:hover .result-num {
+    color: var(--color-primary);
+    opacity: 0.3;
+  }
+  .result-body { min-width: 0; }
+  .result-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .result-cat { font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .result-sep { opacity: 0.4; }
+  .result-title {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.35;
+    margin-bottom: 6px;
+    transition: color 0.15s;
+  }
+  .result-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .result-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .result-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+  }
+  .result-tag mark {
+    background: rgba(196, 82, 9, 0.15);
+    color: var(--color-primary);
+    padding: 0 3px;
+    border-radius: 2px;
+  }
+  .result-arrow {
+    display: flex;
+    align-items: center;
+    padding-top: 4px;
+    color: var(--color-primary);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  /* ===== 空状态 ===== */
+  .results-empty {
+    text-align: center;
+    padding: var(--gap-3xl) 0;
+    color: var(--text-tertiary);
+  }
+  .empty-icon { margin-bottom: var(--gap-md); opacity: 0.35; }
+  .empty-title {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+  .empty-sub {
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  /* ===== 动画 ===== */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .result-item {
+    animation: fadeInUp 0.35s ease both;
+  }
+  .result-item:nth-child(1) { animation-delay: 0.04s; }
+  .result-item:nth-child(2) { animation-delay: 0.08s; }
+  .result-item:nth-child(3) { animation-delay: 0.12s; }
+  .result-item:nth-child(4) { animation-delay: 0.16s; }
+  .result-item:nth-child(n+5) { animation-delay: 0.2s; }
+
+  /* ===== 移动端 ===== */
+  @media (max-width: 768px) {
+    .search-page { padding: var(--gap-xl) var(--gap-md); }
+    .search-title { font-size: clamp(2.5rem, 12vw, 3.5rem); }
+    .result-item { grid-template-columns: 2.2rem 1fr 20px; gap: var(--gap-md); padding: var(--gap-md) 0; padding-left: 0; margin-left: 0; }
+    .result-num { font-size: 1.5rem; }
+    .result-title { font-size: 1.05rem; }
+    .result-arrow { display: none; }
+    .cat-entrance-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .cat-entrance-grid { grid-template-columns: 1fr; }
+    .result-time { display: none; }
+  }
+</style>

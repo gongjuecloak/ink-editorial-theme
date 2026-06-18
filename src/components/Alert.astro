@@ -1,0 +1,109 @@
+---
+export interface Props {
+  variant?: 'info' | 'success' | 'warning' | 'error';
+  title?: string;
+  dismissible?: boolean;
+}
+
+const { variant = 'info', title, dismissible = false } = Astro.props;
+
+const colorMap: Record<string, string> = {
+  info:    'var(--text-secondary)',
+  success: '#2E8B57',
+  warning: '#A48000',
+  error:   '#B41E1E',
+};
+
+const bgMap: Record<string, string> = {
+  info:    'rgba(60, 100, 140, 0.05)',
+  success: 'rgba(46, 139, 87, 0.05)',
+  warning: 'rgba(180, 130, 0, 0.05)',
+  error:   'rgba(180, 30, 30, 0.05)',
+};
+---
+
+<div
+  class:list={['alert', `alert--${variant}`]}
+  role="alert"
+  data-dismissible={dismissible}
+>
+  <div class="alert__body">
+    {title && <p class="alert__title">{title}</p>}
+    <div class="alert__content"><slot /></div>
+  </div>
+  {dismissible && (
+    <button class="alert__close" aria-label="Dismiss alert" type="button">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+      </svg>
+    </button>
+  )}
+</div>
+
+<script is:inline>
+  document.querySelectorAll('.alert[data-dismissible="true"] .alert__close').forEach(btn => {
+    btn.addEventListener('click', () => {
+      (btn as HTMLElement).closest('.alert')?.remove();
+    });
+  });
+</script>
+
+<style>
+  .alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+    padding: var(--gap-sm) var(--gap-md);
+    border-left: 3px solid;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+
+  .alert--info    { background-color: rgba(60, 100, 140, 0.05); border-color: #3C648C; }
+  .alert--success { background-color: rgba(46, 139, 87, 0.05); border-color: #2E8B57; }
+  .alert--warning { background-color: rgba(180, 130, 0, 0.05); border-color: #A48000; }
+  .alert--error   { background-color: rgba(180, 30, 30, 0.05); border-color: #B41E1E; }
+
+  .alert__body {
+    flex: 1;
+  }
+
+  .alert__title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    font-size: 0.8125rem;
+  }
+
+  .alert__content {
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .alert__content :global(p) {
+    margin: 0;
+  }
+
+  .alert__close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    line-height: 0;
+  }
+  .alert__close:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
+  }
+
+  /* Dark mode */
+  [data-theme="dark"] .alert--info    { background-color: rgba(80, 140, 180, 0.06); border-color: #508CB4; }
+  [data-theme="dark"] .alert--success { background-color: rgba(59, 175, 111, 0.06); border-color: #3BAF6F; }
+  [data-theme="dark"] .alert--warning { background-color: rgba(200, 160, 0, 0.06); border-color: #C8A000; }
+  [data-theme="dark"] .alert--error   { background-color: rgba(220, 60, 60, 0.06); border-color: #DC3C3C; }
+</style>

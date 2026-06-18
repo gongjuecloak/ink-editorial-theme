@@ -1,0 +1,62 @@
+---
+export interface Props {
+  orientation?: 'horizontal' | 'vertical';
+  label?: string;
+}
+
+const { orientation = 'horizontal', label } = Astro.props;
+---
+
+{label ? (
+  <div class:list={['divider', `divider--${orientation}`]}>
+    <span class="divider__label">{label}</span>
+  </div>
+) : (
+  <div class:list={['divider', `divider--${orientation}`]}></div>
+)}
+
+<style>
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+    font-family: var(--font-mono);
+  }
+
+  .divider--horizontal {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .divider--vertical {
+    flex-direction: column;
+    height: 100%;
+    width: 1px;
+    align-self: stretch;
+  }
+
+  .divider--horizontal::before,
+  .divider--horizontal::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-color);
+  }
+
+  .divider--vertical::before,
+  .divider--vertical::after {
+    content: '';
+    flex: 1;
+    width: 1px;
+    background-color: var(--border-color);
+  }
+
+  .divider__label {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 var(--gap-sm);
+  }
+</style>

@@ -1,0 +1,172 @@
+---
+interface Props {
+  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left";
+}
+const { position = "bottom-right" } = Astro.props;
+const posMap = {
+  "top-right": { top: "16px", right: "16px" },
+  "top-left": { top: "16px", left: "16px" },
+  "bottom-right": { bottom: "16px", right: "16px" },
+  "bottom-left": { bottom: "16px", left: "16px" },
+};
+const posStyle = posMap[position];
+---
+
+<div
+  id="toast-container"
+  class="toast-container"
+  style={Object.entries(posStyle).map(([k,v]) => `${k}:${v}`).join(";")}
+  aria-live="polite"
+  aria-atomic="true"
+></div>
+
+<style>
+  .toast-container {
+    position: fixed;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm);
+    pointer-events: none;
+    max-width: 380px;
+    width: 100%;
+    left: auto;
+    right: 16px;
+    top: auto;
+    bottom: 16px;
+  }
+
+  :global([data-theme="dark"]) .toast-container {
+    left: auto;
+    right: 16px;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var TYPE_CONFIG = {
+      info: {
+        color: "#0952C4",
+        bg: "#EBF2FF",
+        darkBg: "#0A1628",
+        darkColor: "#60A5FA",
+        icon: "\u2139\uFE0F"
+      },
+      success: {
+        color: "#166534",
+        bg: "#F0FDF4",
+        darkBg: "#0A1F0E",
+        darkColor: "#4ADE80",
+        icon: "\u2705"
+      },
+      warning: {
+        color: "#92400E",
+        bg: "#FFFBEB",
+        darkBg: "#1F1500",
+        darkColor: "#FBBF24",
+        icon: "\u26A0\uFE0F"
+      },
+      error: {
+        color: "#991B1B",
+        bg: "#FEF2F2",
+        darkBg: "#1F0A0A",
+        darkColor: "#F87171",
+        icon: "\u274C"
+      },
+    };
+
+    var container = document.getElementById("toast-container");
+    if (!container) return;
+
+    function getStyles(type) {
+      var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      var cfg = TYPE_CONFIG[type] || TYPE_CONFIG.info;
+      return {
+        borderColor: isDark ? cfg.darkColor : cfg.color,
+        bg: isDark ? cfg.darkBg : cfg.bg,
+        color: isDark ? cfg.darkColor : cfg.color,
+        icon: cfg.icon || "\u2139\uFE0F",
+      };
+    }
+
+    function showToast(message, type) {
+      var s = getStyles(type || "info");
+      var el = document.createElement("div");
+      el.className = "toast-item toast-out";
+      el.setAttribute("role", "alert");
+      el.style.cssText = [
+        "display:flex",
+        "align-items:center",
+        "gap:10px",
+        "padding:12px 16px",
+        "min-height:44px",
+        "border-radius:var(--radius-sm)",
+        "border-left:4px solid " + s.borderColor,
+        "background:" + s.bg,
+        "box-shadow:0 4px 12px rgba(0,0,0,0.1)",
+        "font-family:var(--font-mono)",
+        "font-size:13px",
+        "font-weight:500",
+        "color:" + s.color,
+        "pointer-events:all",
+        "max-width:380px",
+        "width:100%",
+        "box-sizing:border-box",
+        "transition:opacity 0.25s ease, transform 0.25s ease",
+        "transform:translateX(20px)"
+      ].join(";");
+
+      var iconEl = document.createElement("span");
+      iconEl.style.cssText = "flex-shrink:0;font-size:16px;line-height:1;";
+      iconEl.textContent = s.icon;
+
+      var text = document.createElement("span");
+      text.style.cssText = "flex:1;line-height:1.5;";
+      text.textContent = message;
+
+      var close = document.createElement("button");
+      close.style.cssText = [
+        "display:flex",
+        "align-items:center",
+        "justify-content:center",
+        "width:22px",
+        "height:22px",
+        "padding:0",
+        "border:none",
+        "border-radius:var(--radius-sm)",
+        "background:transparent",
+        "cursor:pointer",
+        "flex-shrink:0",
+        "color:" + s.color,
+        "opacity:0.5",
+        "transition:opacity 0.1s linear",
+      ].join(";");
+      close.setAttribute("aria-label", "\u5173\u95ed");
+      close.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      close.addEventListener("mouseenter", function () { close.style.opacity = "1"; });
+      close.addEventListener("mouseleave", function () { close.style.opacity = "0.5"; });
+      close.addEventListener("click", function () { dismiss(el); });
+
+      el.appendChild(iconEl);
+      el.appendChild(text);
+      el.appendChild(close);
+      container.appendChild(el);
+
+      void el.offsetWidth;
+      el.classList.remove("toast-out");
+      el.style.transform = "translateX(0)";
+
+      setTimeout(function () { dismiss(el); }, 3500);
+    }
+
+    function dismiss(el) {
+      if (!el || el._dismissed) return;
+      el._dismissed = true;
+      el.style.opacity = "0";
+      el.style.transform = "translateX(20px)";
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 280);
+    }
+
+    window.showToast = showToast;
+  })();
+</script>

@@ -1,0 +1,118 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { getCategories, getCategoryColor } from "../../utils";
+
+const allPosts = await getCollection("blog");
+const categories = getCategories(allPosts);
+const sortedCategories = [...categories.entries()].sort((a, b) => b[1] - a[1]);
+---
+
+<MainLayout title="全部分类" description="按分类浏览文章">
+  <div class="categories-page">
+    <div class="page-hero">
+      <div class="page-hero-left">
+        <div class="page-hero-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>
+          </svg>
+        </div>
+        <div class="page-hero-text">
+          <h1>全部分类</h1>
+          <p>{sortedCategories.length} 个分类</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-list">
+      {sortedCategories.map(([name, count]) => {
+        const color = getCategoryColor(name);
+        return (
+          <a href={`/archive?category=${encodeURIComponent(name)}`} class="category-item" style={`--cat-color: ${color}`}>
+            <span class="category-name">{name}</span>
+            <span class="category-count">{count}</span>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .categories-page {
+    max-width: var(--max-width, 800px);
+    margin: 0 auto;
+    padding: var(--gap-lg, 24px) var(--gap-md, 16px);
+  }
+
+  .page-hero {
+    margin-bottom: var(--gap-xl, 32px);
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md, 16px);
+  }
+
+  .page-hero-left {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md, 16px);
+  }
+
+  .page-hero-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  .page-hero-text h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+    font-family: "Noto Serif SC", serif;
+  }
+
+  .page-hero-text p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .category-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm, 8px);
+  }
+
+  .category-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--gap-md, 16px) var(--gap-lg, 24px);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+
+  .category-item:hover {
+    border-color: var(--cat-color, var(--color-primary));
+  }
+
+  .category-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .category-count {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

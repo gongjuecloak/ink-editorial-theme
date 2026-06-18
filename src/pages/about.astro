@@ -1,0 +1,558 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import { SITE, AUTHOR, SOCIAL_LINKS } from "../site.config.mjs";
+import steamData from "../steam_games.json";
+import friendsData from "../friends.json";
+import healthData from '../friends_health.json';
+const friendHealth = healthData as Record<string, boolean>;
+---
+
+<MainLayout title="关于" description={AUTHOR.description}>
+  <div class="about-page">
+    <!-- Hero: 个人信息卡 -->
+    <div class="page-hero" style="flex-wrap: wrap;">
+      <div class="page-hero-left">
+        <div class="page-hero-icon" style="width:56px;height:56px;border-radius:50%;font-size:1.5rem;font-weight:700;">
+          {AUTHOR.name.charAt(0)}
+        </div>
+        <div class="page-hero-text">
+          <h1>{AUTHOR.name}</h1>
+          <p>{AUTHOR.bio} · 「{AUTHOR.motto}」</p>
+        </div>
+      </div>
+      <div class="about-social-inline">
+          {SOCIAL_LINKS.map((link) => (
+            <a href={link.url} class="social-chip" target="_blank" rel="noopener">
+              {link.icon === 'github' && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              )}
+              {link.icon === 'bilibili' && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906L17.813 4.653zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.373-.933.373s-.684-.124-.933-.373c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.373-.933.373s-.684-.124-.933-.373c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>
+              )}
+              {link.icon === 'mail' && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              )}
+              {link.icon !== 'github' && link.icon !== 'bilibili' && link.icon !== 'mail' && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              )}
+              <span>{link.name}</span>
+            </a>
+          ))}
+      </div>
+    </div>
+
+    <!-- 站点信息 + 关于本站 双栏 -->
+    <div class="about-grid">
+      <!-- 关于本站 -->
+      <div class="about-section card">
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(109, 40, 217, 0.1); color: var(--color-primary);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </div>
+          <h2 class="section-title">关于本站</h2>
+        </div>
+        <div class="section-body prose">
+          <p>{AUTHOR.description}</p>
+          <p>本站使用 Astro 构建，主题为 CloakBlog。在这里记录技术探索、设计思考和生活感悟。</p>
+          <p>原站点是「公爵书房」，自从服务器到期后，就进入歇业状态，现在以「{SITE.title}」重生，取意于在云端与图景之间寻找方向的意象。</p>
+          <p>历史域名：blog.gjcloak.top</p>
+        </div>
+      </div>
+
+      <!-- 站点信息 -->
+      <div class="about-section card">
+        <div class="section-header">
+          <div class="section-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h2 class="section-title">站点信息</h2>
+        </div>
+        <div class="info-list">
+          <div class="info-row">
+            <span class="info-label">站点名称</span>
+            <span class="info-value">{SITE.title}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">博主</span>
+            <span class="info-value">{AUTHOR.name}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">建站年份</span>
+            <span class="info-value">{SITE.startYear}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">所在地区</span>
+            <span class="info-value">{AUTHOR.location}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">站点地址</span>
+            <a href={SITE.url} class="info-link" target="_blank">{SITE.url.replace('https://', '')}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏时长榜 -->
+    {steamData.top_games.length > 0 && <div class="about-section card">
+      <div class="section-header">
+        <div class="section-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="10" y1="12" x2="10" y2="12"/><path d="M15 9h4"/><path d="M15 12h4"/><path d="M15 15h4"/></svg>
+        </div>
+        <h2 class="section-title">游戏时长榜</h2>
+        <div class="steam-stats">
+          <span class="stat-badge">{steamData.total_games} 款游戏</span>
+          <span class="stat-badge">{steamData.total_playtime_hours.toLocaleString()} 小时</span>
+        </div>
+      </div>
+      <div class="game-list">
+        {steamData.top_games.map((game, i) => (
+          <div class="game-item">
+            <div class="game-rank">{i + 1}</div>
+            <img
+              src={`https://steamcdn-a.akamaihd.net/steam/apps/${game.appid}/header.jpg`}
+              alt={game.name}
+              class="game-cover"
+              width={460}
+              height={215}
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="game-info">
+              <div class="game-header">
+                <span class="game-name">{game.name}</span>
+                <span class="game-hours">{game.playtime_hours.toLocaleString()}h</span>
+              </div>
+              {game.achievements ? (
+                <div class="game-achieve">
+                  <div class="achieve-bar-bg">
+                    <div class="achieve-bar-fill" style={`width: ${game.achievements.percentage}%`} />
+                  </div>
+                  <span class="achieve-text">{game.achievements.unlocked}/{game.achievements.total} 成就</span>
+                </div>
+              ) : (
+                <div class="game-achieve">
+                  <span class="achieve-none">无成就系统</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>}
+
+    <!-- 友情链接 -->
+    {friendsData.length > 0 && <div class="about-section card about-links-section">
+      <div class="section-header">
+        <div class="section-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <h2 class="section-title">友情链接</h2>
+        <a href="#"  /* Replace with your friend link application URL */ target="_blank" rel="noopener" class="apply-friend-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
+          申请友链
+        </a>
+      </div>
+
+      {friendsData.length > 0 ? (
+        <div class="friends-grid">
+          {friendsData.map((friend) => (
+            <a href={friend.url} class="friend-card" target="_blank" rel="noopener" title={friend.desc}>
+              <div class="friend-avatar-ring">
+                <img src={friend.avatar} alt={friend.name} class="friend-avatar" width={40} height={40} loading="lazy" decoding="async" />
+              </div>
+              <div class="friend-info">
+                <span class="friend-name">{friend.name}</span>
+                <span class="friend-desc">{friend.desc}</span>
+              </div>
+              {friendHealth[friend.url] === false ? (
+                <span class="fc-badge" aria-label="站点已离线">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </span>
+              ) : null}
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p class="links-empty-text">暂无友链，欢迎交换。</p>
+      )}
+
+      <!-- 换链格式 -->
+      <div class="link-exchange">
+        <div class="exchange-divider">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          <span>换链格式</span>
+        </div>
+        <div class="exchange-format">
+          <div class="exchange-row"><span class="exchange-label">名称</span><span class="exchange-value">{SITE.title}</span></div>
+          <div class="exchange-row"><span class="exchange-label">地址</span><a class="exchange-value exchange-link" href={SITE.url}>{SITE.url}</a></div>
+          <div class="exchange-row"><span class="exchange-label">描述</span><span class="exchange-value">{SITE.description}</span></div>
+          <div class="exchange-row"><span class="exchange-label">头像</span><span class="exchange-value">{SITE.url}/logo.svg</span></div>
+        </div>
+        <p class="exchange-hint">友链申请请点击上方「申请友链」按钮提交，添加前请先在本站添加友链，感谢！</p>
+      </div>
+    </div>
+
+
+  </div>
+
+</MainLayout>
+
+
+<style>
+  .about-page {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--gap-lg) var(--gap-xl) 0;
+  }
+
+  /* ===== Hero Card ===== */
+  .about-hero { position: relative; overflow: hidden; padding: 0; margin-bottom: var(--gap-lg); }
+  .hero-bg { position: absolute; top: 0; left: 0; right: 0; height: 120px; background: linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 50%, #a78bfa 100%); opacity: 0.08; }
+  [data-theme="dark"] .hero-bg { opacity: 0.15; }
+  .hero-content { position: relative; padding: var(--gap-2xl) var(--gap-xl) var(--gap-xl); text-align: center; }
+  .hero-avatar { margin-bottom: var(--gap-md); }
+  .avatar-ring { width: 88px; height: 88px; border-radius: var(--radius-full); padding: 3px; background: linear-gradient(135deg, var(--color-primary), #8b5cf6); display: inline-flex; align-items: center; justify-content: center; }
+  .avatar-inner { width: 100%; height: 100%; border-radius: var(--radius-full); background: var(--bg-card); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: var(--color-primary); }
+  .hero-name { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 6px; }
+  .hero-bio { font-size: 0.92rem; color: var(--text-secondary); margin: 0 0 4px; font-weight: 500; }
+  .hero-motto { font-size: 0.85rem; color: var(--text-tertiary); font-style: italic; margin: 0 0 var(--gap-lg); line-height: 1.6; }
+  .hero-social { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .social-chip { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); border: 1px solid var(--border-color); text-decoration: none; transition: border-color 0.15s, background-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s; background: var(--bg-card); }
+  .social-chip:hover { color: var(--color-primary); border-color: var(--color-primary); background: var(--color-primary-bg); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(109, 40, 217, 0.12); }
+
+  /* ===== Two-column Grid ===== */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-md); margin-bottom: var(--gap-md); }
+
+  /* ===== Section Card ===== */
+  .about-section { padding: var(--gap-lg); }
+  .section-header { display: flex; align-items: center; gap: var(--gap-sm); margin-bottom: var(--gap-md); padding-bottom: var(--gap-sm); border-bottom: 1px solid var(--border-color); }
+  .section-icon { width: 32px; height: 32px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+  .section-body { font-size: 0.88rem; line-height: 1.8; color: var(--text-secondary); }
+  .section-body p { margin: 0 0 var(--gap-sm); }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  /* ===== Info List ===== */
+  .info-list { display: flex; flex-direction: column; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { font-size: 0.82rem; color: var(--text-tertiary); font-weight: 500; }
+  .info-value { font-size: 0.85rem; color: var(--text-primary); font-weight: 600; }
+  .info-link { font-size: 0.85rem; color: var(--color-primary); text-decoration: none; font-weight: 500; transition: opacity 0.15s; }
+  .info-link:hover { opacity: 0.8; }
+
+  /* ===== Steam Stats ===== */
+  .steam-stats { display: flex; gap: 6px; margin-left: auto; }
+  .stat-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 600; background: var(--color-primary-bg); color: var(--color-primary); }
+
+  /* ===== Game List ===== */
+  .game-list { display: flex; flex-direction: column; gap: 10px; }
+  .game-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--bg-hover); transition: background-color 0.15s, transform 0.15s; }
+  .game-item:hover { background: var(--border-color); transform: translateX(4px); }
+  .game-rank { width: 24px; height: 24px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; flex-shrink: 0; background: var(--border-color); color: var(--text-secondary); }
+  .game-item:nth-child(1) .game-rank { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; }
+  .game-item:nth-child(2) .game-rank { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+  .game-item:nth-child(3) .game-rank { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
+  .game-cover { width: 92px; height: 43px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(--border-color); }
+  .game-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .game-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .game-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .game-hours { font-size: 0.78rem; font-weight: 700; color: var(--color-primary); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .game-achieve { display: flex; align-items: center; gap: 8px; }
+  .achieve-bar-bg { flex: 1; height: 4px; border-radius: var(--radius-full); background: var(--border-color); overflow: hidden; }
+  .achieve-bar-fill { height: 100%; border-radius: var(--radius-full); background: linear-gradient(90deg, var(--color-primary), #8b5cf6); transition: width 0.6s ease; }
+  .achieve-text { font-size: 0.7rem; color: var(--text-tertiary); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+  .achieve-none { font-size: 0.7rem; color: var(--text-tertiary); font-style: italic; }
+
+  /* ===== Friends — Redesigned ===== */
+  .about-links-section { margin-top: var(--gap-lg); }
+  .friends-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: var(--gap-lg);
+  }
+  .friend-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg-hover);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .friend-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 12px rgba(196, 82, 9, 0.1);
+    transform: translateY(-1px);
+  }
+  .friend-avatar-ring {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    padding: 2px;
+    background: linear-gradient(135deg, #f59e0b, #C45209);
+    flex-shrink: 0;
+  }
+  .friend-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--border-color);
+    border: 2px solid var(--bg-card);
+  }
+  .friend-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .friend-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .friend-desc {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .links-empty-text {
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+    text-align: center;
+    padding: var(--gap-lg) 0;
+  }
+
+  /* ===== Link Exchange — Redesigned ===== */
+  .link-exchange { margin-top: 0; }
+  .exchange-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--gap-md);
+    color: var(--text-tertiary);
+  }
+  .exchange-divider svg { flex-shrink: 0; opacity: 0.6; }
+  .exchange-divider::before,
+  .exchange-divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px dashed var(--border-color);
+  }
+  .exchange-divider span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .exchange-format {
+    background: var(--bg-code);
+    color: var(--bg-code-text);
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8125rem;
+    line-height: 2;
+    border: 1px solid var(--border-color);
+  }
+  .exchange-row {
+    display: flex;
+    gap: var(--gap-md);
+    align-items: baseline;
+  }
+  .exchange-label {
+    color: #C45209;
+    font-weight: 600;
+    min-width: 3.5em;
+    flex-shrink: 0;
+  }
+  .exchange-value {
+    color: var(--bg-code-text);
+    word-break: break-all;
+  }
+  .exchange-link {
+    color: #C45209;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .exchange-link:hover { opacity: 0.7; }
+  .exchange-hint {
+    margin: 10px 0 0;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    padding-left: 2px;
+  }
+  [data-theme="dark"] .exchange-format {
+    background: #0D0D0D;
+    border-color: #2A2A2A;
+  }
+  [data-theme="dark"] .exchange-label { color: #E8773A; }
+  [data-theme="dark"] .exchange-link { color: #E8773A; }
+  [data-theme="dark"] .exchange-value { color: #C8C8C8; }
+  [data-theme="dark"] .friend-card:hover {
+    box-shadow: 0 2px 12px rgba(196, 82, 9, 0.2);
+  }
+  [data-theme="dark"] .friend-avatar-ring {
+    position: relative;
+    background: linear-gradient(135deg, #d97706, #E8773A);
+  }
+
+  /* ===== Apply Friend Button ===== */
+  .apply-friend-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #C45209;
+    border: 1.5px solid #C45209;
+    background: transparent;
+    text-decoration: none;
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+  .apply-friend-btn:hover {
+    background: #C45209;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(196, 82, 9, 0.18);
+  }
+  .apply-friend-btn svg {
+    flex-shrink: 0;
+  }
+
+  /* ===== Comments Section ===== */
+    margin-top: var(--gap-xl);
+  }
+  }
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .twikoo-title {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+  }
+
+
+  /* ===== Friend Offline State ===== */
+  .friend-card.is-offline {
+    opacity: 0.4;
+    filter: grayscale(0.8);
+  }
+  .friend-card.is-offline:hover {
+    opacity: 0.55;
+    border-color: var(--border-color) !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+  .fc-badge {
+    display: none;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: #fff;
+    z-index: 2;
+    box-shadow: 0 0 0 2px var(--bg-card);
+  }
+  [data-theme="dark"] .fc-badge {
+    background: #dc2626;
+    box-shadow: 0 0 0 2px var(--bg-card);
+  }
+  /* Offline: muted avatar ring */
+  .friend-card.is-offline .friend-avatar-ring {
+    position: relative;
+    background: var(--border-color);
+  }
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .about-page { padding: var(--gap-sm) var(--gap-md) 0; }
+    .about-grid { grid-template-columns: 1fr; }
+    .hero-content { padding: var(--gap-xl) var(--gap-md); }
+    .avatar-ring { width: 72px; height: 72px; }
+    .avatar-inner { font-size: 1.6rem; }
+    .hero-name { font-size: 1.3rem; }
+    .game-cover { width: 76px; height: 36px; }
+    .game-item { padding: 8px; gap: 8px; }
+    .friends-grid { grid-template-columns: 1fr 1fr; }
+    .about-section { padding: var(--gap-md); }
+    .page-hero { padding: 12px; flex-wrap: wrap; gap: var(--gap-sm); }
+    .page-hero-icon { width: 42px; height: 42px; font-size: 1.1rem; }
+    .page-hero-text h1 { font-size: 1.1rem; }
+    .page-hero-text p { font-size: 0.8rem; }
+    .about-social-inline { flex-wrap: wrap; gap: 6px; margin-top: var(--gap-sm); }
+    .social-chip { font-size: 0.72rem; padding: 4px 10px; }
+    .section-body { font-size: 0.84rem; }
+    .info-row { padding: 8px 0; }
+    .info-label { font-size: 0.76rem; }
+    .info-value { font-size: 0.78rem; }
+    .steam-stats { gap: 4px; }
+    .stat-badge { font-size: 0.66rem; padding: 2px 8px; }
+    .game-name { font-size: 0.8rem; }
+    .game-hours { font-size: 0.72rem; }
+    .achieve-text { font-size: 0.66rem; }
+  }
+
+  @media (max-width: 480px) {
+    .about-page { padding: var(--gap-xs) var(--gap-sm) 0; }
+    .page-hero { padding: 10px; }
+    .page-hero-icon { width: 36px; height: 36px; font-size: 0.95rem; }
+    .page-hero-text h1 { font-size: 1rem; }
+    .page-hero-text p { font-size: 0.72rem; }
+    .social-chip { font-size: 0.66rem; padding: 3px 8px; }
+    .about-section { padding: var(--gap-sm); }
+    .section-header { gap: 4px; flex-wrap: wrap; }
+    .section-icon { width: 28px; height: 28px; }
+    .section-icon svg { width: 14px; height: 14px; }
+    .section-title { font-size: 0.9rem; }
+    .section-body { font-size: 0.8rem; line-height: 1.7; }
+    .info-row { padding: 6px 0; }
+    .game-item { padding: 6px; gap: 6px; flex-wrap: wrap; }
+    .game-cover { width: 64px; height: 30px; }
+    .game-rank { width: 20px; height: 20px; font-size: 0.68rem; }
+    .game-name { font-size: 0.76rem; }
+    .game-hours { font-size: 0.68rem; }
+    .friend-card { padding: 10px 12px; gap: 10px; }
+    .friend-avatar-ring {
+    position: relative; width: 36px; height: 36px; }
+    .friend-name { font-size: 0.82rem; }
+    .friend-desc { font-size: 0.68rem; }
+    .friends-grid { grid-template-columns: 1fr; gap: 8px; }
+    .steam-stats { flex-wrap: wrap; }
+    .exchange-format { padding: 12px 14px; font-size: 0.75rem; }
+    .about-comments { margin-top: var(--gap-lg); }
+  }
+
+  /* ===== Dark mode overrides ===== */
+  [data-theme="dark"] .achieve-bar-fill { background: linear-gradient(90deg, var(--color-primary), #a78bfa); }
+</style>

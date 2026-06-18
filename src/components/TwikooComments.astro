@@ -1,0 +1,120 @@
+---
+// src/components/TwikooComments.astro
+---
+
+<section class="twikoo-wrapper" id="twikoo-comments">
+  <div class="twikoo-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="twikoo-title">COMMENTS</span>
+  </div>
+  <div id="tcomment"></div>
+</section>
+
+<script is:inline>
+(function _twikooLoader() {
+  function _loadTwikoo() {
+    var _twkCss = document.createElement('link');
+    _twkCss.rel = 'stylesheet';
+    _twkCss.href = 'https://cdn.jsdelivr.net/npm/twikoo@1.7.11/dist/twikoo.css';
+    document.head.appendChild(_twkCss);
+
+    var _twkJs = document.createElement('script');
+    _twkJs.src = 'https://cdn.jsdelivr.net/npm/twikoo@1.7.11/dist/twikoo.min.js';
+    _twkJs.onload = function() {
+      if (!window.twikoo) return;
+      window.twikoo.init({
+        envId: 'https://nf.lzplus.top/',
+        el: '#tcomment',
+        lang: 'zh-CN',
+        onCommentLoaded: function() {
+          var _isDark = document.documentElement.classList.contains('dark') || 
+                       document.documentElement.getAttribute('data-theme') === 'dark';
+          if (_isDark) {
+            _updateTwikooTheme('dark');
+          }
+        }
+      });
+    };
+    document.head.appendChild(_twkJs);
+
+    function _updateTwikooTheme(theme) {
+      var _iframe = document.querySelector('.twikoo-wrapper iframe');
+      if (!_iframe) return;
+    }
+
+    var _twkObserver = new MutationObserver(function() {
+      var _isDark = document.documentElement.classList.contains('dark') || 
+                   document.documentElement.getAttribute('data-theme') === 'dark';
+      var _wrapper = document.querySelector('.twikoo-wrapper');
+      if (_wrapper) {
+        _wrapper.classList.toggle('twikoo-dark', _isDark);
+      }
+    });
+    _twkObserver.observe(document.documentElement, { 
+      attributes: true, 
+      attributeFilter: ['class', 'data-theme'] 
+    });
+  }
+  
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(_loadTwikoo, { timeout: 3000 });
+  } else {
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(_loadTwikoo, 2000);
+    });
+  }
+})();
+</script>
+
+<style is:inline>
+  .twikoo-wrapper {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--border-color);
+    max-width: var(--reading-width);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .twikoo-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .twikoo-header svg {
+    color: var(--color-primary);
+  }
+
+  .twikoo-title {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+  }
+
+  /* 暗色模式覆盖 */
+  .twikoo-wrapper.twikoo-dark .tk-content,
+  .twikoo-wrapper.twikoo-dark .tk-nick,
+  .twikoo-wrapper.twikoo-dark .tk-time {
+    color: var(--text-secondary) !important;
+  }
+  .twikoo-wrapper.twikoo-dark .tk-input {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+  }
+  .twikoo-wrapper.twikoo-dark .tk-submit {
+    background: var(--color-primary) !important;
+  }
+
+  @media (max-width: 768px) {
+    .twikoo-wrapper {
+      padding-top: 1rem;
+      margin-top: 1.5rem;
+    }
+  }
+</style>

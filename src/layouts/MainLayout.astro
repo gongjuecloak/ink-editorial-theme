@@ -1,0 +1,485 @@
+---
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import ThemeScript from "../components/ThemeScript.astro";
+import { SITE, AUTHOR } from "../site.config.mjs";
+
+interface Props {
+  title: string;
+  description?: string;
+  type?: "website" | "article";
+  pubDate?: Date;
+  image?: string;
+}
+
+const { title, description = SITE.description, type = "website", pubDate, image } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, SITE.url);
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <link rel="preconnect" href="https://blog.lzplus.top" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:locale" content="zh_CN" />
+    {image && <meta property="og:image" content={image} />}
+    <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="baidu-site-verification" content="codeva-qUwYbrvznE" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/rss.xml" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {type === "website" && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE.title,
+        description: SITE.description,
+        url: SITE.url,
+        author: { "@type": "Person", name: AUTHOR.name },
+      })} />
+    )}
+    {type === "article" && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description: description,
+        url: canonicalURL.href,
+        datePublished: pubDate?.toISOString(),
+        dateModified: (Astro.props as any).updatedDate?.toISOString() || pubDate?.toISOString(),
+        author: { "@type": "Person", name: AUTHOR.name, url: SITE.url },
+        publisher: { "@type": "Person", name: AUTHOR.name },
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonicalURL.href },
+        ...(image ? { image } : {}),
+      })} />
+    )}
+    <ThemeScript />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"b1aa33589fce4683a48b57f6d963869a"}'></script>
+    <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+    <script>LA.init({id:"LE5L9SsawfIxv0QT",ck:"LE5L9SsawfIxv0QT",autoTrack:true,hashMode:true})</script>
+  </head>
+  <body>
+    <!-- 加载动画 -->
+    <div id="ink-loader" aria-hidden="true">
+      <div class="lk-corner lk-tl"></div>
+      <div class="lk-corner lk-tr"></div>
+      <div class="lk-corner lk-bl"></div>
+      <div class="lk-corner lk-br"></div>
+      <div class="lk-wordmark" aria-label="云图札记">
+        <span class="lk-wm-inner">云图札记</span>
+      </div>
+      <div class="lk-track">
+        <div class="lk-bar"></div>
+        <div class="lk-bar-glow"></div>
+      </div>
+      <div class="lk-dots">
+        <span class="lk-dot"></span>
+        <span class="lk-dot"></span>
+        <span class="lk-dot"></span>
+      </div>
+    </div>
+
+    <a href="#main-content" class="skip-link">跳到主内容</a>
+    <Header />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+
+    <button class="back-to-top" id="globalBackToTop" aria-label="回到顶部">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+
+    <script is:inline>
+      (function() {
+        // === 印刷机加载动画 ===
+        var loader = document.getElementById('ink-loader');
+
+        function showLoader() {
+          if (loader) { loader.classList.add('active'); loader.classList.remove('done'); loader.removeAttribute('aria-hidden'); }
+        }
+        function hideLoader() {
+          if (loader) {
+            loader.classList.add('done');
+            setTimeout(function() {
+              loader.classList.remove('active', 'done');
+              loader.setAttribute('aria-hidden', 'true');
+            }, 400);
+          }
+        }
+
+        window.addEventListener('load', function() { setTimeout(hideLoader, 60); });
+
+        document.addEventListener('click', function(e) {
+          var a = e.target.closest ? e.target.closest('a') : null;
+          if (!a) return;
+          var href = a.getAttribute('href');
+          if (!href) return;
+          if (href.startsWith('http') || href.startsWith('//') || href.startsWith('mailto:') || href.startsWith('#') || href.startsWith('tel:') || a.target === '_blank') return;
+          if (a.hasAttribute('download')) return;
+          showLoader();
+        });
+
+        window.addEventListener('beforeunload', showLoader);
+
+        // === 回到顶部 ===
+        var btn = document.getElementById('globalBackToTop');
+        if (btn) {
+          window.addEventListener('scroll', function() {
+            btn.classList.toggle('visible', window.scrollY > 400);
+          });
+          btn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+
+  /* === 加载动画 — 炫酷版 === */
+  #ink-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: var(--bg-body);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s;
+    overflow: hidden;
+  }
+  #ink-loader.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+  }
+  #ink-loader.done {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  /* 四角装饰 — 活版印刷角线 */
+  .lk-corner {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-color: var(--color-primary);
+    border-style: solid;
+    opacity: 0;
+  }
+  .lk-tl { top: 24px; left: 24px; border-width: 2px 0 0 2px; }
+  .lk-tr { top: 24px; right: 24px; border-width: 2px 2px 0 0; }
+  .lk-bl { bottom: 24px; left: 24px; border-width: 0 0 2px 2px; }
+  .lk-br { bottom: 24px; right: 24px; border-width: 0 2px 2px 0; }
+  #ink-loader.active .lk-corner {
+    animation: cornerIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  #ink-loader.active .lk-tr { animation-delay: 0.06s; }
+  #ink-loader.active .lk-bl { animation-delay: 0.12s; }
+  #ink-loader.active .lk-br { animation-delay: 0.18s; }
+  #ink-loader.done .lk-corner {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease;
+  }
+  @keyframes cornerIn {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 0.7; transform: scale(1); }
+  }
+
+  /* 品牌字 — 衬线大标题，滑入遮罩扫过 */
+  .lk-wordmark {
+    font-family: 'Noto Serif SC', var(--font-serif, serif);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.08em;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .lk-wm-inner {
+    display: block;
+    position: relative;
+  }
+  .lk-wm-inner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--bg-body);
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+  #ink-loader.active .lk-wordmark {
+    animation: wmIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) 0.1s forwards;
+  }
+  #ink-loader.active .lk-wm-inner::after {
+    animation: wmReveal 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+  }
+  #ink-loader.done .lk-wordmark,
+  #ink-loader.done .lk-wm-inner::after {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  @keyframes wmIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes wmReveal {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+  }
+
+  /* 进度条轨道 */
+  .lk-track {
+    width: min(340px, 60vw);
+    height: 3px;
+    background: var(--border-color);
+    border-radius: 2px;
+    position: relative;
+    overflow: visible;
+    opacity: 0;
+  }
+  #ink-loader.active .lk-track {
+    animation: trackIn 0.4s ease 0.3s forwards;
+  }
+  #ink-loader.done .lk-track { animation: none; opacity: 0; transition: opacity 0.2s; }
+  @keyframes trackIn {
+    from { opacity: 0; transform: scaleX(0.7); }
+    to   { opacity: 1; transform: scaleX(1); }
+  }
+
+  /* 发光进度条 */
+  .lk-bar {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    width: 0;
+    background: var(--color-primary);
+    border-radius: 2px;
+    will-change: width;
+  }
+  .lk-bar-glow {
+    position: absolute;
+    top: -4px; left: 0;
+    height: calc(100% + 8px);
+    width: 0;
+    background: var(--color-primary);
+    border-radius: 4px;
+    opacity: 0.25;
+    filter: blur(6px);
+    will-change: width;
+  }
+  #ink-loader.active .lk-bar,
+  #ink-loader.active .lk-bar-glow {
+    animation: barLoad 1.6s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards,
+               barGlow 1.6s ease-in-out 0.6s forwards;
+  }
+  #ink-loader.done .lk-bar,
+  #ink-loader.done .lk-bar-glow {
+    animation: barDone 0.3s ease forwards !important;
+  }
+  @keyframes barLoad {
+    0%   { width: 0; }
+    60%  { width: 78%; }
+    80%  { width: 92%; }
+    100% { width: 100%; }
+  }
+  @keyframes barGlow {
+    0%   { width: 0; opacity: 0.25; }
+    50%  { width: 80%; opacity: 0.4; }
+    100% { width: 100%; opacity: 0.15; }
+  }
+  @keyframes barDone {
+    to { opacity: 0; }
+  }
+
+  /* 三点脉冲 */
+  .lk-dots {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    opacity: 0;
+  }
+  #ink-loader.active .lk-dots { animation: dotsIn 0.3s ease 0.8s forwards; }
+  #ink-loader.done .lk-dots { animation: none; opacity: 0; transition: opacity 0.2s; }
+  @keyframes dotsIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .lk-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    will-change: transform, opacity;
+  }
+  #ink-loader.active .lk-dot {
+    animation: dotBounce 1.4s ease-in-out infinite;
+  }
+  #ink-loader.active .lk-dot:nth-child(2) { animation-delay: 0.2s; }
+  #ink-loader.active .lk-dot:nth-child(3) { animation-delay: 0.4s; }
+  #ink-loader.done .lk-dot {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  @keyframes dotBounce {
+    0%, 100% { transform: scale(0.6); opacity: 0.3; }
+    50%       { transform: scale(1.5); opacity: 1; }
+  }
+
+  /* 顶部轨道 — 横跨全屏的细线 */
+  .loader-rail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    overflow: hidden;
+  }
+  .loader-shuttle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 30%;
+    background: var(--color-primary);
+    opacity: 0.85;
+    border-radius: 0 1px 1px 0;
+    will-change: transform;
+  }
+  #ink-loader.active .loader-shuttle {
+    animation: shuttleSlide 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  #ink-loader.done .loader-shuttle {
+    animation: shuttleExit 0.3s ease forwards;
+  }
+  @keyframes shuttleSlide {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(434%); }
+  }
+  @keyframes shuttleExit {
+    0%   { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+
+  /* 三点脉冲 */
+  .loader-dots {
+    display: flex;
+    gap: var(--gap-sm);
+    align-items: center;
+  }
+  .loader-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    opacity: 0;
+    will-change: opacity, transform;
+  }
+  #ink-loader.active .loader-dot {
+    animation: dotPulse 1.2s ease-in-out infinite;
+  }
+  #ink-loader.active .loader-dot:nth-child(2) { animation-delay: 0.15s; }
+  #ink-loader.active .loader-dot:nth-child(3) { animation-delay: 0.3s; }
+  #ink-loader.done .loader-dot {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.15; transform: scale(0.8); }
+    50%      { opacity: 1;    transform: scale(1.4); }
+  }
+
+  /* 印刷压条 — 从左向右扫 */
+  .ink-bar {
+    height: 3px;
+    background: #C45209;
+    width: 0;
+    will-change: width;
+  }
+  #ink-loader.active .ink-bar {
+    animation: inkPress 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  #ink-loader.done .ink-bar {
+    animation: inkRetract 0.35s ease forwards;
+  }
+  @keyframes inkPress {
+    0%   { width: 0; }
+    50%  { width: 72%; }
+    75%  { width: 88%; }
+    100% { width: 100%; }
+  }
+  @keyframes inkRetract {
+    0%   { width: 100%; opacity: 1; }
+    100% { width: 100%; opacity: 0; }
+  }
+
+  /* 底部等宽字 Loading */
+  .ink-text {
+    position: absolute;
+    bottom: 48%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    color: #B0A99F;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  #ink-loader.active .ink-text {
+    animation: inkTextIn 0.3s 0.15s ease forwards;
+  }
+  #ink-loader.done .ink-text {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  @keyframes inkTextIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 0.6; transform: translateY(0); }
+  }
+</style>
+
+<style>
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    padding: var(--gap-sm) var(--gap-md);
+    background: var(--color-primary);
+    color: #fff;
+    z-index: 1000;
+    transition: top 0.2s;
+  }
+  .skip-link:focus {
+    top: 0;
+  }
+</style>

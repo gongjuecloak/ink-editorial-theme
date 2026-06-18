@@ -1,0 +1,76 @@
+---
+export interface Props {
+  text: string;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+const { text, position = 'top' } = Astro.props;
+---
+
+<span class:list={['tooltip-wrap', `tooltip-wrap--${position}`]}>
+  <slot />
+  <span class:list={['tooltip', `tooltip--${position}`]} role="tooltip">{text}</span>
+</span>
+
+<style>
+  .tooltip-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+  }
+
+  .tooltip {
+    position: absolute;
+    z-index: 100;
+    display: none;
+    padding: 4px 8px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #FFFFFF;
+    background-color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .tooltip-wrap:hover .tooltip {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Top */
+  .tooltip-wrap--top .tooltip {
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Bottom */
+  .tooltip-wrap--bottom .tooltip {
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Left */
+  .tooltip-wrap--left .tooltip {
+    right: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* Right */
+  .tooltip-wrap--right .tooltip {
+    left: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* Dark mode: lighter tooltip bg */
+  [data-theme="dark"] .tooltip {
+    background-color: var(--text-tertiary);
+  }
+</style>

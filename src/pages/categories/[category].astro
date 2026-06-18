@@ -1,0 +1,30 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { sortPosts, getCategories, getCategoryColor, calcReadingTime } from "../../utils";
+import FormattedDate from "../../components/FormattedDate.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  const categories = getCategories(posts);
+  return [...categories.entries()].map(([name, count]) => ({
+    params: { category: name },
+    props: { categoryName: name, count },
+  }));
+}
+
+const { categoryName, count } = Astro.props;
+const allPosts = await getCollection("blog");
+const posts = sortPosts(allPosts.filter(p => (p.data.category || '未分类') === categoryName));
+const catColor = getCategoryColor(categoryName);
+const categories = getCategories(allPosts);
+---
+
+
+<script is:inline>
+  // 从 URL 路径提取分类名，redirect 到归档页
+  var pathParts = location.pathname.split('/');
+  var slug = pathParts[pathParts.length - 1] || '';
+  try { slug = decodeURIComponent(slug); } catch(e) {}
+  location.replace('/archive?category=' + encodeURIComponent(slug));
+</script>

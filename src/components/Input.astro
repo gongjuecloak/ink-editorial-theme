@@ -1,0 +1,110 @@
+---
+export interface Props {
+  type?: string;
+  placeholder?: string;
+  value?: string;
+  disabled?: boolean;
+  error?: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const {
+  type = 'text',
+  placeholder = '',
+  value = '',
+  disabled = false,
+  error = '',
+  size = 'md',
+} = Astro.props;
+---
+
+<div class:list={['input-wrap', `input-wrap--${size}`, { 'input-wrap--error': !!error }]}>
+  <input
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    disabled={disabled}
+    class:list={['input', `input--${size}`]}
+    aria-invalid={!!error}
+    aria-describedby={error ? `${Astro.id}-error` : undefined}
+  />
+  {error && (
+    <span id={`${Astro.id}-error`} class="input-error-msg" role="alert">{error}</span>
+  )}
+</div>
+
+<style>
+  .input-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .input {
+    display: block;
+    width: 100%;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-bg);
+  }
+
+  .input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background-color: var(--bg-hover);
+  }
+
+  /* Size: sm */
+  .input--sm {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* Size: md */
+  .input--md {
+    padding: 7px 12px;
+    font-size: 0.8125rem;
+  }
+
+  /* Size: lg */
+  .input--lg {
+    padding: 9px 14px;
+    font-size: 0.875rem;
+  }
+
+  /* Error state */
+  .input-wrap--error .input {
+    border-color: #B41E1E;
+  }
+  .input-wrap--error .input:focus {
+    border-color: #B41E1E;
+    box-shadow: 0 0 0 2px rgba(180, 30, 30, 0.1);
+  }
+
+  .input-error-msg {
+    font-size: 0.6875rem;
+    color: #B41E1E;
+  }
+
+  /* Dark mode */
+  [data-theme="dark"] .input-wrap--error .input {
+    border-color: #DC3C3C;
+  }
+  [data-theme="dark"] .input-error-msg {
+    color: #DC3C3C;
+  }
+</style>

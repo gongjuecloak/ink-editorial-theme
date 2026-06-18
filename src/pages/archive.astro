@@ -1,0 +1,445 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { sortPosts, getCategories, getTags, getCategoryColor } from "../utils";
+import FormattedDate from "../components/FormattedDate.astro";
+
+const allPosts = await getCollection("blog");
+const posts = sortPosts(allPosts);
+const categories = getCategories(allPosts);
+const tags = getTags(allPosts);
+const topTags = [...tags.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
+
+// 按年份分组
+const postsByYear = new Map();
+posts.forEach(post => {
+  const year = post.data.pubDate.getFullYear();
+  if (!postsByYear.has(year)) postsByYear.set(year, []);
+  postsByYear.get(year).push(post);
+});
+const years = [...postsByYear.keys()].sort((a, b) => b - a);
+---
+
+<MainLayout title="归档" description="所有文章归档">
+  <div class="archive-page">
+    <!-- 页面头部 -->
+    <div class="page-hero">
+      <div class="page-hero-left">
+        <div class="page-hero-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>
+          </svg>
+        </div>
+        <div class="page-hero-text">
+          <h1>归档</h1>
+          <p>共 {posts.length} 篇文章 · {categories.size} 个分类 · {tags.size} 个标签</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分类筛选 -->
+    <div class="filter-section">
+      <div class="filter-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        分类
+      </div>
+      <div class="filter-bar" id="cat-filter">
+        <button class="filter-pill active" data-type="cat" data-value="all">全部</button>
+        {[...categories.entries()].sort((a, b) => b[1] - a[1]).map(([name, count]) => (
+          <button class="filter-pill" data-type="cat" data-value={name} style={`--pill-color: ${getCategoryColor(name)}`}>
+            {name}
+            <span class="pill-count">{count}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- 标签筛选 -->
+    <div class="filter-section">
+      <div class="filter-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        标签
+      </div>
+      <div class="filter-bar" id="tag-filter">
+        <button class="filter-pill active" data-type="tag" data-value="all">全部</button>
+        {topTags.map(([tag, count]) => (
+          <button class="filter-pill" data-type="tag" data-value={tag}>
+            #{tag}
+            <span class="pill-count">{count}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- 活跃筛选提示 -->
+    <div class="active-filter-bar" id="active-filters" style="display:none">
+      <span class="active-filter-text">当前筛选：</span>
+      <span class="active-filter-tag" id="active-cat"></span>
+      <span class="active-filter-tag" id="active-tag"></span>
+      <button class="clear-filters" id="clear-filters">清除筛选</button>
+    </div>
+
+    <!-- 按年份分组 -->
+    <div class="archive-list">
+      {years.map((year) => (
+        <div class="year-group">
+          <div class="year-header">
+            <span class="year-label">{year}</span>
+            <span class="year-count">{postsByYear.get(year).length} 篇</span>
+          </div>
+          <div class="year-posts">
+            {postsByYear.get(year).map((post) => (
+              <a href={`/blog/${post.id}`} class="archive-item" data-tags={post.data.tags.join(',')} data-category={post.data.category || '未分类'}>
+                <span class="archive-date"><FormattedDate date={post.data.pubDate} /></span>
+                <span class="archive-title">{post.data.title}</span>
+                <span class="archive-cat" style={`background: ${getCategoryColor(post.data.category || '未分类')}12; color: ${getCategoryColor(post.data.category || '未分类')}`}>
+                  {post.data.category || '未分类'}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <!-- 无结果提示 -->
+      <div class="no-results" id="no-results" style="display:none">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <p>没有匹配的文章</p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    const catFilter = document.getElementById('cat-filter');
+    const tagFilter = document.getElementById('tag-filter');
+    const items = document.querySelectorAll('.archive-item');
+    const activeFiltersBar = document.getElementById('active-filters');
+    const activeCatEl = document.getElementById('active-cat');
+    const activeTagEl = document.getElementById('active-tag');
+    const noResults = document.getElementById('no-results');
+    const clearBtn = document.getElementById('clear-filters');
+
+    let activeCat = 'all';
+    let activeTag = 'all';
+
+    // 更新 URL 栏（不跳转）
+    function updateURL() {
+      const params = new URLSearchParams();
+      if (activeCat !== 'all') params.set('category', activeCat);
+      if (activeTag !== 'all') params.set('tag', activeTag);
+      const newUrl = params.toString() ? '?' + params.toString() : location.pathname;
+      history.replaceState(null, '', newUrl);
+    }
+
+    function updateFilters() {
+      let visibleCount = 0;
+      items.forEach(item => {
+        const el = item;
+        const itemTags = el.dataset.tags || '';
+        const itemCat = el.dataset.category || '';
+        const catMatch = activeCat === 'all' || itemCat === activeCat;
+        const tagMatch = activeTag === 'all' || itemTags.split(',').includes(activeTag);
+        const show = catMatch && tagMatch;
+        el.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+
+      document.querySelectorAll('.year-group').forEach(g => {
+        let anyVisible = false;
+        g.querySelectorAll('.archive-item').forEach(item => {
+          if (item.style.display !== 'none') anyVisible = true;
+        });
+        g.style.display = anyVisible ? '' : 'none';
+      });
+
+      const hasFilter = activeCat !== 'all' || activeTag !== 'all';
+      activeFiltersBar.style.display = hasFilter ? 'flex' : 'none';
+      activeCatEl.textContent = activeCat !== 'all' ? '分类: ' + activeCat : '';
+      activeCatEl.style.display = activeCat !== 'all' ? '' : 'none';
+      activeTagEl.textContent = activeTag !== 'all' ? '#' + activeTag : '';
+      activeTagEl.style.display = activeTag !== 'all' ? '' : 'none';
+      noResults.style.display = visibleCount === 0 ? 'flex' : 'none';
+    }
+
+    function setupFilterBar(bar, type) {
+      bar.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          bar.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const val = btn.dataset.value || 'all';
+          if (type === 'cat') activeCat = val;
+          else activeTag = val;
+          updateURL();
+          updateFilters();
+        });
+      });
+    }
+
+    setupFilterBar(catFilter, 'cat');
+    setupFilterBar(tagFilter, 'tag');
+
+    clearBtn && clearBtn.addEventListener('click', () => {
+      activeCat = 'all';
+      activeTag = 'all';
+      catFilter && catFilter.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      catFilter && catFilter.querySelector('[data-value="all"]') && catFilter.querySelector('[data-value="all"]').classList.add('active');
+      tagFilter && tagFilter.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      tagFilter && tagFilter.querySelector('[data-value="all"]') && tagFilter.querySelector('[data-value="all"]').classList.add('active');
+      updateURL();
+      updateFilters();
+    });
+
+    // 页面加载时：从 URL 读取 category + tag 参数并初始化
+    const urlParams = new URLSearchParams(location.search);
+    const initCat = urlParams.get('category');
+    const initTag = urlParams.get('tag');
+
+    if (initCat) {
+      activeCat = initCat;
+      catFilter && catFilter.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      const catBtn = catFilter && catFilter.querySelector('[data-value="' + initCat + '"]');
+      if (catBtn) { catBtn.classList.add('active'); }
+    }
+    if (initTag) {
+      activeTag = initTag;
+      tagFilter && tagFilter.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      const tagBtn = tagFilter && tagFilter.querySelector('[data-value="' + initTag + '"]');
+      if (tagBtn) { tagBtn.classList.add('active'); }
+    }
+    if (initCat || initTag) {
+      updateFilters();
+    }
+  </script>
+
+</MainLayout>
+
+<style>
+  .archive-page {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--gap-lg) var(--gap-xl) 0;
+  }
+
+  /* Filter sections */
+  .filter-section {
+    margin-bottom: var(--gap-md);
+  }
+  .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-sans);
+  }
+  .filter-label svg {
+    color: var(--color-primary);
+  }
+
+  /* Filter pills - 统一字体继承 */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 14px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background: transparent;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: opacity var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+    font-weight: 500;
+    font-family: inherit;
+    line-height: 1.4;
+  }
+  .filter-pill:hover {
+    border-color: var(--pill-color, var(--color-primary));
+    color: var(--pill-color, var(--color-primary));
+    background: color-mix(in srgb, var(--pill-color, var(--color-primary)) 6%, transparent);
+  }
+  .filter-pill.active {
+    background: var(--pill-color, var(--color-primary));
+    color: #fff;
+    border-color: var(--pill-color, var(--color-primary));
+  }
+  .pill-count {
+    font-size: 0.68rem;
+    opacity: 0.7;
+    font-weight: 400;
+  }
+
+  /* Active filter bar */
+  .active-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-bg);
+    margin-bottom: var(--gap-lg);
+    font-size: 0.8rem;
+    font-family: var(--font-sans);
+  }
+  .active-filter-text {
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  .active-filter-tag {
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .clear-filters {
+    margin-left: auto;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background: transparent;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+  }
+  .clear-filters:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+
+  /* Year groups */
+  .archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-xl);
+  }
+  .year-group {
+    transition: opacity var(--transition-fast);
+  }
+  .year-header {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+    margin-bottom: var(--gap-md);
+    padding-bottom: var(--gap-xs);
+    border-bottom: 2px solid var(--color-primary-bg);
+  }
+  .year-label {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    font-family: var(--font-sans);
+  }
+  .year-count {
+    font-size: 0.72rem;
+    padding: 1px 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    font-weight: 600;
+    font-family: var(--font-sans);
+  }
+
+  /* Archive items - 统一字体 */
+  .year-posts {
+    display: flex;
+    flex-direction: column;
+  }
+  .archive-item {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-md);
+    padding: 10px 0;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color);
+    transition: opacity var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+    font-family: var(--font-sans);
+  }
+  .archive-item:last-child { border-bottom: none; }
+  .archive-item:hover { padding-left: var(--gap-sm); }
+  .archive-date {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    min-width: 90px;
+    font-family: var(--font-sans);
+  }
+  .archive-title {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    transition: color var(--transition-fast);
+  }
+  .archive-item:hover .archive-title { color: var(--color-primary); }
+  .archive-cat {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--font-sans);
+  }
+
+  /* No results */
+  .no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--gap-md);
+    padding: var(--gap-2xl) 0;
+    color: var(--text-tertiary);
+  }
+  .no-results p {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  .no-results svg {
+    opacity: 0.3;
+  }
+
+  /* Responsive */
+    @media (max-width: 768px) {
+    .archive-page { padding: var(--gap-sm) var(--gap-md); }
+    .archive-hero { padding: var(--gap-md); margin-bottom: var(--gap-md); }
+    .archive-hero h1 { font-size: 1.3rem; }
+    .archive-layout { grid-template-columns: 1fr; gap: var(--gap-md); }
+    .archive-sidebar { position: static; }
+    .archive-filters { flex-wrap: wrap; gap: var(--gap-sm); }
+    .filter-btn { font-size: 0.72rem; padding: 4px 10px; }
+    .archive-list { gap: 4px; }
+    .archive-item { padding: 8px 10px; gap: 6px; }
+    .archive-item-title { font-size: 0.84rem; }
+    .archive-item-date { font-size: 0.66rem; }
+    .archive-item-cat { font-size: 0.66rem; }
+    .sidebar-card { padding: var(--gap-sm); }
+  }
+
+  @media (max-width: 480px) {
+    .archive-page { padding: var(--gap-xs) var(--gap-sm); }
+    .archive-hero { padding: var(--gap-sm); }
+    .archive-hero h1 { font-size: 1.1rem; }
+    .archive-hero-subtitle { font-size: 0.72rem; }
+    .archive-filters { gap: 4px; }
+    .filter-btn { font-size: 0.66rem; padding: 3px 8px; }
+    .archive-item { padding: 6px 8px; flex-wrap: wrap; }
+    .archive-item-title { font-size: 0.8rem; }
+    .archive-item-date { font-size: 0.62rem; }
+    .archive-item-cat { font-size: 0.62rem; }
+  }
+
+</style>

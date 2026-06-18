@@ -1,0 +1,162 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection, getEntry } from 'astro:content';
+import { SITE } from '../../site.config.mjs';
+import { sortPosts } from '../../utils';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  const seriesSet = new Set<string>();
+  allPosts.forEach(post => {
+    if (post.data.series) seriesSet.add(post.data.series);
+  });
+  return [...seriesSet].map(name => ({
+    params: { name },
+  }));
+}
+
+const { name } = Astro.params;
+const seriesName = decodeURIComponent(name);
+
+const allPosts = await getCollection('blog');
+const seriesPosts = sortPosts(
+  allPosts.filter(post => post.data.series === seriesName)
+);
+
+const seriesDescription = seriesPosts[0]?.data.seriesDescription || `${seriesName} 系列，共 ${seriesPosts.length} 篇文章`;
+---
+
+<MainLayout title={`${seriesName} · 系列文集 · ${SITE.title}`}>
+  <div class="page">
+    <header class="page-header">
+      <h1 class="page-title">{seriesName}</h1>
+      <p class="page-sub">{seriesDescription}</p>
+    </header>
+
+    <div class="series-posts">
+      {seriesPosts.map((post, i) => (
+        <a href={`/blog/${post.id}`} class="series-post-row">
+          <span class="series-post-seq">{String(i + 1).padStart(3, '0')}</span>
+          <span class="series-post-pipe">│</span>
+          <span class="series-post-title">{post.data.title}</span>
+          {post.data.category && (
+            <span class="series-post-cat">{post.data.category}</span>
+          )}
+          <span class="series-post-date">
+            <time>{new Date(post.data.pubDate).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</time>
+          </span>
+        </a>
+      ))}
+    </div>
+
+    {seriesPosts.length === 0 && (
+      <div class="empty-state">
+        <p>该系列暂无文章。</p>
+      </div>
+    )}
+  </div>
+</MainLayout>
+
+<style>
+  .page {
+    max-width: var(--max-width, 1200px);
+    margin: 0 auto;
+    padding: var(--gap-lg, 2rem);
+  }
+
+  .page-header {
+    margin-bottom: var(--gap-2xl, 4rem);
+  }
+
+  .page-title {
+    font-family: var(--font-mono, monospace);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--text-primary, #1a1a1a);
+    margin-bottom: var(--gap-sm, 0.5rem);
+  }
+
+  .page-sub {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    color: var(--text-secondary, #4a4a4a);
+    letter-spacing: 0.02em;
+  }
+
+  .series-posts {
+    border-left: 2px solid var(--border-color, rgba(0,0,0,0.08));
+    font-family: var(--font-mono, monospace);
+    font-size: 0.84rem);
+  }
+
+  .series-post-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 14px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    transition: background var(--transition-fast, 0.1s linear), border-color var(--transition-fast, 0.1s linear);
+    min-width: 0;
+  }
+
+  .series-post-row:hover {
+    background: var(--color-primary-bg, rgba(196,82,9,0.06));
+    border-bottom-color: var(--color-primary, #C45209);
+  }
+
+  .series-post-seq {
+    color: var(--text-tertiary, #888);
+    font-size: 0.72rem;
+    min-width: 32px;
+    text-align: right;
+    user-select: none;
+  }
+
+  .series-post-pipe {
+    color: var(--border-color-strong, rgba(0,0,0,0.14));
+    font-size: 0.7rem;
+    user-select: none;
+  }
+
+  .series-post-title {
+    color: var(--text-primary, #1a1a1a);
+    flex: 1;
+    min-width: 0;
+    transition: color var(--transition-fast, 0.1s linear);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .series-post-row:hover .series-post-title {
+    color: var(--color-primary, #C45209);
+  }
+
+  .series-post-cat {
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm, 4px);
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    color: var(--text-secondary, #555);
+  }
+
+  .series-post-date {
+    font-size: 0.72rem;
+    color: var(--text-tertiary, #888);
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--gap-2xl, 4rem) 0;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-tertiary, #888);
+    font-size: 0.9rem;
+  }
+</style>

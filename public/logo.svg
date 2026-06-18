@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background: warm paper -->
+  <rect width="512" height="512" fill="#FAF8F5"/>
+  
+  <!-- Main mark: open book + cloud abstracted into geometric form -->
+  <g transform="translate(256, 230)">
+    
+    <!-- Cloud-top abstracted geometric: three stacked rectangles, offset, rust orange -->
+    <rect x="-72" y="-90" width="144" height="28" fill="#C45209" rx="0"/>
+    <rect x="-56" y="-124" width="112" height="28" fill="#C45209" rx="0"/>
+    <rect x="-36" y="-158" width="72" height="28" fill="#C45209" rx="0"/>
+    
+    <!-- Decorative small diamond above cloud -->
+    <polygon points="0,-172 8,-180 0,-188 -8,-180" fill="#C45209"/>
+    
+    <!-- Book body: two pages spreading from center spine -->
+    <path d="M-4,-58 L-4,80 Q-4,84 -8,84 L-80,84 Q-88,84 -88,76 L-88,-50 Q-88,-58 -80,-58 Z" 
+          fill="none" stroke="#C45209" stroke-width="3"/>
+    <path d="M4,-58 L4,80 Q4,84 8,84 L80,84 Q88,84 88,76 L88,-50 Q88,-58 80,-58 Z" 
+          fill="none" stroke="#C45209" stroke-width="3"/>
+    
+    <!-- Spine line -->
+    <line x1="0" y1="-58" x2="0" y2="84" stroke="#C45209" stroke-width="3"/>
+    
+    <!-- Text lines on left page -->
+    <line x1="-76" y1="-38" x2="-16" y2="-38" stroke="#C45209" stroke-width="1.5" opacity="0.4"/>
+    <line x1="-76" y1="-24" x2="-16" y2="-24" stroke="#C45209" stroke-width="1.5" opacity="0.4"/>
+    <line x1="-76" y1="-10" x2="-40" y2="-10" stroke="#C45209" stroke-width="1.5" opacity="0.4"/>
+    
+    <!-- Text lines on right page -->
+    <line x1="16" y1="-38" x2="76" y2="-38" stroke="#C45209" stroke-width="1.5" opacity="0.4"/>
+    <line x1="16" y1="-24" x2="76" y2="-24" stroke="#C45209" stroke-width="1.5" opacity="0.4"/>
+    <line x1="16" y1="-10" x2="52" y2="-10" stroke="#C45209" stroke-width="1.5" opacity="0.4"/>
+    
+    <!-- Small ink dot decoration at book bottom -->
+    <circle cx="-44" cy="60" r="3" fill="#C45209" opacity="0.3"/>
+    <circle cx="44" cy="60" r="3" fill="#C45209" opacity="0.3"/>
+  </g>
+  
+  <!-- Site name: 云图札记 -->
+  <text x="256" y="380" 
+        font-family="'Noto Serif SC', 'Source Han Serif SC', 'STSong', 'SimSun', serif" 
+        font-size="52" font-weight="700" fill="#1A1A1A" 
+        text-anchor="middle" letter-spacing="12">云图札记</text>
+  
+  <!-- Subtitle -->
+  <text x="256" y="416" 
+        font-family="'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace" 
+        font-size="13" fill="#C45209" 
+        text-anchor="middle" letter-spacing="4">CLOUD ATLAS NOTES</text>
+  
+  <!-- Decorative line under subtitle -->
+  <line x1="180" y1="432" x2="332" y2="432" stroke="#C45209" stroke-width="1.5" opacity="0.5"/>
+  
+  <!-- Corner marks (Ink Editorial signature) -->
+  <line x1="24" y1="24" x2="24" y2="44" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="24" y1="24" x2="44" y2="24" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="488" y1="24" x2="488" y2="44" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="488" y1="24" x2="468" y2="24" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="24" y1="488" x2="24" y2="468" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="24" y1="488" x2="44" y2="488" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="488" y1="488" x2="488" y2="468" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+  <line x1="488" y1="488" x2="468" y2="488" stroke="#C45209" stroke-width="1.5" opacity="0.3"/>
+</svg>

@@ -1,0 +1,135 @@
+---
+export interface Props {
+  defaultTab?: string;
+  class?: string;
+}
+
+const { defaultTab = '', class: className = '' } = Astro.props;
+---
+
+<div class:list={['tabs', className]} data-default-tab={defaultTab}>
+  <div class="tabs__list" role="tablist">
+    <slot name="tab" />
+  </div>
+  <div class="tabs__panels">
+    <slot />
+  </div>
+</div>
+
+<script is:inline>
+  function initTabs() {
+    const tabContainers = document.querySelectorAll<HTMLElement>('.tabs');
+
+    tabContainers.forEach(container => {
+      const defaultTab = container.dataset.defaultTab;
+      const tabs = container.querySelectorAll<HTMLElement>('[role="tab"]');
+      const panels = container.querySelectorAll<HTMLElement>('[role="tabpanel"]');
+
+      // Set initial active tab
+      let activeTab = defaultTab
+        ? container.querySelector<HTMLElement>(`[data-tab="${defaultTab}"]`)
+        : (tabs[0] as HTMLElement | undefined);
+
+      if (activeTab) {
+        activateTab(activeTab);
+      }
+
+      // Tab click handlers
+      tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          e.preventDefault();
+          activateTab(tab as HTMLElement);
+        });
+      });
+
+      function activateTab(tab: HTMLElement) {
+        // Deactivate all
+        tabs.forEach(t => {
+          t.classList.remove('tab--active');
+          t.setAttribute('aria-selected', 'false');
+          t.setAttribute('tabindex', '-1');
+        });
+        panels.forEach(p => {
+          (p as HTMLElement).hidden = true;
+        });
+
+        // Activate selected
+        tab.classList.add('tab--active');
+        tab.setAttribute('aria-selected', 'true');
+        tab.setAttribute('tabindex', '0');
+
+        const panelId = tab.getAttribute('aria-controls');
+        if (panelId) {
+          const panel = container.querySelector<HTMLElement>(`#${panelId}`);
+          if (panel) panel.hidden = false;
+        }
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initTabs);
+</script>
+
+<style>
+  .tabs {
+    font-family: var(--font-mono);
+  }
+
+  .tabs__list {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    gap: 0;
+  }
+
+  /* Tab button styles (applied to slotted elements via :global if needed,
+     or targeted directly when role=tab is set) */
+  :global([role="tab"]) {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color var(--transition-fast),
+                border-color var(--transition-fast);
+    margin-bottom: -1px; /* sit on the border line */
+    outline: none;
+  }
+
+  :global([role="tab"]:hover) {
+    color: var(--text-primary);
+  }
+
+  :global([role="tab"]:focus-visible) {
+    outline: 2px solid var(--color-primary-bg);
+    outline-offset: 2px;
+  }
+
+  :global([role="tab"].tab--active) {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+
+  /* Panels */
+  .tabs__panels {
+    padding-top: var(--gap-md);
+  }
+
+  :global([role="tabpanel"]) {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  /* Dark mode */
+  [data-theme="dark"] :global([role="tab"].tab--active) {
+    color: var(--color-primary-light);
+    border-bottom-color: var(--color-primary-light);
+  }
+</style>

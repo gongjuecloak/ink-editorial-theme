@@ -1,0 +1,39 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { sortPosts, getCategories, getCategoryColor, getTags, calcReadingTime } from "../../utils";
+import FormattedDate from "../../components/FormattedDate.astro";
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection("blog");
+  const tags = getTags(allPosts);
+  return [...tags.entries()].map(([name, count]) => ({
+    params: { tag: name },
+    props: { tagName: name, count },
+  }));
+}
+
+const { tagName, count } = Astro.props;
+const allPosts = await getCollection("blog");
+const posts = sortPosts(allPosts.filter(p => (p.data.tags || []).includes(tagName)));
+const allTags = getTags(allPosts);
+const sortedTags = [...allTags.entries()].sort((a, b) => b[1] - a[1]);
+
+// 收集关联标签（同篇文章出现过的其他标签）
+const relatedTags = new Map();
+posts.forEach(p => {
+  (p.data.tags || []).forEach(t => {
+    if (t !== tagName) relatedTags.set(t, (relatedTags.get(t) || 0) + 1);
+  });
+});
+const sortedRelated = [...relatedTags.entries()].sort((a, b) => b[1] - a[1]);
+const maxTagFreq = Math.max(...allTags.values());
+---
+
+
+<script is:inline>
+  var pathParts = location.pathname.split('/');
+  var slug = pathParts[pathParts.length - 1] || '';
+  try { slug = decodeURIComponent(slug); } catch(e) {}
+  location.replace('/archive?tag=' + encodeURIComponent(slug));
+</script>

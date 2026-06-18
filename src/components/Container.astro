@@ -1,0 +1,39 @@
+---
+export interface Props {
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  padding?: boolean;
+}
+
+const { size = 'md', padding = true } = Astro.props;
+
+const maxWidthMap: Record<string, string> = {
+  sm:   '640px',
+  md:   '768px',
+  lg:   '1024px',
+  xl:   '1280px',
+  full: '100%',
+};
+---
+
+<div
+  class:list={['container', { 'container--no-padding': !padding }]}
+  style={`max-width: ${maxWidthMap[size]}`}
+>
+  <slot />
+</div>
+
+<style>
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--gap-md);
+    padding-right: var(--gap-md);
+    font-family: var(--font-mono);
+  }
+
+  .container--no-padding {
+    padding-left: 0;
+    padding-right: 0;
+  }
+</style>

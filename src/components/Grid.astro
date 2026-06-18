@@ -1,0 +1,44 @@
+---
+export interface Props {
+  cols?: number;
+  gap?: 'sm' | 'md' | 'lg';
+  responsive?: boolean;
+}
+
+const {
+  cols = 3,
+  gap = 'md',
+  responsive = true,
+} = Astro.props;
+
+const gapMap: Record<string, string> = {
+  sm: 'var(--gap-sm)',
+  md: 'var(--gap-md)',
+  lg: 'var(--gap-lg)',
+};
+---
+
+<div
+  class:list={['grid', { 'grid--responsive': responsive }]}
+  style={`grid-template-columns: repeat(${cols}, 1fr); gap: ${gapMap[gap]};`}
+>
+  <slot />
+</div>
+
+<style>
+  .grid {
+    display: grid;
+    font-family: var(--font-mono);
+  }
+
+  /* Mobile: 1 column */
+  .grid--responsive {
+    grid-template-columns: 1fr !important;
+  }
+
+  @media (min-width: 640px) {
+    .grid--responsive {
+      grid-template-columns: repeat(var(--cols, 3), 1fr);
+    }
+  }
+</style>

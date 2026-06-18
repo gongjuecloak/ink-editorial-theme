@@ -1,0 +1,13 @@
+[
+  {
+    "category": "数码装备",
+    "items": [
+      {
+        "name": "Example Laptop",
+        "description": "A great laptop for work",
+        "status": "active",
+        "image": "/images/gear/laptop.jpg"
+      }
+    ]
+  }
+]

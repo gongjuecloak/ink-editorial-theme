@@ -1,0 +1,205 @@
+---
+interface Props {
+  title?: string;
+  triggerText?: string;
+  confirmText?: string;
+  cancelText?: string;
+  slot?: string;
+}
+const {
+  title = "确认操作",
+  triggerText = "打开弹窗",
+  confirmText = "确认",
+  cancelText = "取消",
+} = Astro.props;
+const slotContent = Astro.slots.has('default') ? await Astro.slots.render('default') : '';
+---
+
+<div class="modal-wrap" id="modal-wrap">
+  <button class="modal-trigger" id="modal-trigger">{triggerText}</button>
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal-dialog" id="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">{title}</h3>
+        <button class="modal-close" id="modal-close" aria-label="关闭">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        {slotContent ? <Fragment set:html={slotContent} /> : <p>确定要执行此操作吗？此操作不可撤销。</p>}
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="modal-cancel">{cancelText}</button>
+        <button class="modal-confirm" id="modal-confirm">{confirmText}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--color-primary);
+    color: #fff;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .modal-trigger:hover {
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms ease, visibility 200ms ease;
+    padding: 16px;
+  }
+  .modal-overlay:not([hidden]) {
+    opacity: 1;
+    visibility: visible;
+  }
+  .modal-dialog {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-md);
+    width: 100%;
+    max-width: 440px;
+    transform: scale(0.95);
+    transition: transform 200ms ease;
+  }
+  .modal-overlay:not([hidden]) .modal-dialog {
+    transform: scale(1);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .modal-title {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: border-color 0.1s, color 0.1s;
+    padding: 0;
+  }
+  .modal-close:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .modal-body {
+    padding: 16px 18px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border-color);
+  }
+  .modal-cancel {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border-color-strong);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    transition: border-color 0.1s;
+  }
+  .modal-cancel:hover {
+    border-color: var(--text-primary);
+  }
+  .modal-confirm {
+    padding: 6px 14px;
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #fff;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .modal-confirm:hover {
+    background: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      var wrap = document.getElementById('modal-wrap');
+      if (!wrap) return;
+      var trigger = document.getElementById('modal-trigger');
+      var overlay = document.getElementById('modal-overlay');
+      var closeBtn = document.getElementById('modal-close');
+      var cancelBtn = document.getElementById('modal-cancel');
+      var confirmBtn = document.getElementById('modal-confirm');
+      if (!trigger || !overlay) return;
+
+      function openModal() {
+        overlay.removeAttribute('hidden');
+        document.body.style.overflow = 'hidden';
+        closeBtn && closeBtn.focus();
+      }
+      function closeModal() {
+        overlay.setAttribute('hidden', '');
+        document.body.style.overflow = '';
+        trigger && trigger.focus();
+      }
+
+      trigger.addEventListener('click', openModal);
+      closeBtn && closeBtn.addEventListener('click', closeModal);
+      cancelBtn && cancelBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeModal();
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !overlay.hasAttribute('hidden')) closeModal();
+      });
+      confirmBtn && confirmBtn.addEventListener('click', function() {
+        closeModal();
+      });
+    });
+  })();
+</script>

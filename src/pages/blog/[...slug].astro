@@ -1,0 +1,76 @@
+---
+import { getCollection, render } from "astro:content";
+import BlogPost from "../../layouts/BlogPost.astro";
+import { calcReadingTime, calcWordCount } from "../../utils";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const readingTime = calcReadingTime(post.body || "");
+const wordCount = calcWordCount(post.body || "");
+
+const tocItems = headings
+  .filter((h) => h.depth === 2 || h.depth === 3)
+  .map((h) => ({ depth: h.depth, slug: h.slug, text: h.text }));
+
+const allPosts = await getCollection("blog");
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const currentIndex = sortedPosts.findIndex((p) => p.id === post.id);
+const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
+const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
+
+// Related posts: same tags, max 5, exclude current post
+const currentTags = post.data.tags || [];
+const relatedPosts = allPosts
+  .filter((p) => p.id !== post.id)
+  .map((p) => {
+    const pTags = p.data.tags || [];
+    const overlap = pTags.filter((t: string) => currentTags.includes(t)).length;
+    return { post: p, overlap };
+  })
+  .filter((r) => r.overlap > 0)
+  .sort((a, b) => b.overlap - a.overlap || b.post.data.pubDate.valueOf() - a.post.data.pubDate.valueOf())
+  .slice(0, 5)
+  .map((r) => r.post);
+
+// Series posts: same series name, ordered by seriesOrder then pubDate
+const seriesName = post.data.series;
+const seriesPosts = seriesName
+  ? allPosts
+      .filter((p) => p.data.series === seriesName)
+      .sort((a, b) => {
+        const aOrder = a.data.seriesOrder ?? 999;
+        const bOrder = b.data.seriesOrder ?? 999;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.data.pubDate.valueOf() - b.data.pubDate.valueOf();
+      })
+  : [];
+---
+
+<BlogPost
+  title={post.data.title}
+  description={post.data.description}
+  pubDate={post.data.pubDate}
+  updatedDate={post.data.updatedDate}
+  heroImage={post.data.heroImage}
+  category={post.data.category}
+  tags={post.data.tags}
+  readingTime={readingTime}
+  wordCount={wordCount}
+  tocItems={tocItems}
+  prevPost={prevPost}
+  nextPost={nextPost}
+  relatedPosts={relatedPosts}
+  seriesName={seriesName}
+  seriesPosts={seriesPosts}
+  currentPostId={post.id}
+>
+  <Content />
+</BlogPost>

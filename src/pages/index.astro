@@ -1,0 +1,952 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+import { SITE, AUTHOR } from '../site.config.mjs';
+import { sortPosts } from '../utils';
+
+const allPosts = await getCollection('blog');
+const posts = sortPosts(allPosts);
+const totalPosts = posts.length;
+
+// 系列文集：统计所有 series，去重后按文章数排序
+const seriesMap = {};
+posts.forEach(post => {
+  if (post.data.series) {
+    if (!seriesMap[post.data.series]) {
+      seriesMap[post.data.series] = { name: post.data.series, count: 0, slugs: [] };
+    }
+    seriesMap[post.data.series].count++;
+    seriesMap[post.data.series].slugs.push(post.id);
+  }
+});
+const seriesList = Object.values(seriesMap).sort((a, b) => b.count - a.count);
+
+// 碎片流：改为「最新文章」（前 8 篇，按日期倒序）
+const fragmentPosts = posts.slice(0, 10);
+
+// NOW 条数据（读取 now.json）
+// NOW data is optional
+let nowRaw = '[]'; try { const fs = await import('fs/promises'); nowRaw = await fs.readFile('src/now.json', 'utf-8'); } catch(e) {}
+const nowData = JSON.parse(nowRaw);
+const nowLogs = nowData.slice(0, 5).map(item => ({
+  text: item.text.length > 30 ? item.text.slice(0, 30) + '...' : item.text,
+}));
+
+// 生成 JS 数组字符串（避免模板语法问题）
+const nowLogsJS = JSON.stringify(nowLogs);
+
+// 标签频率统计：按出现次数分级
+const tagFreqMap = new Map();
+posts.forEach(p => {
+  (p.data.tags || []).forEach(t => {
+    tagFreqMap.set(t, (tagFreqMap.get(t) || 0) + 1);
+  });
+});
+const allTagsSorted = [...tagFreqMap.entries()].sort((a, b) => b[1] - a[1]);
+const coreTags = allTagsSorted.filter(([_, c]) => c >= 3);    // 高频
+const minorTags = allTagsSorted.filter(([_, c]) => c === 2);  // 中频
+const rareTags = allTagsSorted.filter(([_, c]) => c === 1);  // 低频
+const totalTags = tagFreqMap.size;
+const maxFreq = allTagsSorted[0]?.[1] || 1;
+
+const now = {
+  logsJS: nowLogsJS,
+  totalTags,
+};
+---
+
+<MainLayout title={SITE.title} description={AUTHOR.motto}>
+  <!-- ===== TERMINAL HERO ===== -->
+  <div class="terminal-hero">
+    <div class="terminal-frame">
+      <div class="terminal-titlebar">
+        <span class="terminal-dot dot-r"></span>
+        <span class="terminal-dot dot-y"></span>
+        <span class="terminal-dot dot-g"></span>
+        <span class="terminal-title">cloak@blog ~ </span>
+      </div>
+      <div class="terminal-body">
+        <div class="terminal-line" data-index="0"><span class="terminal-text">> CloakBlog v{SITE.startYear}.0 — initializing...</span></div>
+        <div class="terminal-line" data-index="1"><span class="terminal-text">> Loaded {totalPosts} articles, {new Set(posts.map(p => p.data.category)).size} categories</span></div>
+        <div class="terminal-line" data-index="2"><span class="terminal-text">> {totalTags} tags indexed</span></div>
+        <div class="terminal-line" data-index="3"><span class="terminal-text">> Now: 在云端俯瞰图景，在图景中寻找云的方向。</span></div>
+        <div class="terminal-line" data-index="4"><span class="terminal-text">> Ready.</span><span class="terminal-cursor">_</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NOW BAR ===== -->
+  <div class="now-bar">
+    <div class="now-inner">
+      <span class="now-label">NOW</span>
+      <span class="now-sep">▸</span>
+      <span class="now-doing" id="now-doing">加载中...</span>
+      
+    </div>
+  </div>
+
+  <script define:vars={{ logsJSON: now.logsJS }}>
+    (function() {
+      const logs = JSON.parse(logsJSON);
+      let idx = 0;
+      const el = document.getElementById('now-doing');
+      function rotate() {
+        const log = logs[idx];
+        if (log && log.text) {
+          el.textContent = log.text;
+        }
+        idx = (idx + 1) % logs.length;
+      }
+      rotate();
+      setInterval(rotate, 3000);
+    })();
+  </script>
+
+  <!-- ===== MAIN GRID: content + sidebar ===== -->
+  <div class="home-grid">
+    <!-- 左侧主内容 -->
+    <div class="home-main">
+
+      <!-- ===== 最新文章 ===== -->
+      <section class="section latest-section">
+        <h2 class="section-title">最新<span class="section-sub">latest</span></h2>
+
+        <div class="latest-list">
+          {fragmentPosts.map((post, i) => {
+            const date = new Date(post.data.pubDate);
+            const dateStr = date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+            const shortDate = date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' });
+            return (
+              <a href={`/blog/${post.id}`} class="latest-item" data-index={i}>
+                <span class="latest-accent"></span>
+                
+                <div class="latest-body">
+                  <div class="latest-head">
+                    <h3 class="latest-title">{post.data.title}</h3>
+                    <p class="latest-desc">{post.data.description || ''}</p>
+                  </div>
+                  
+                  <div class="latest-meta">
+                    {post.data.category && (
+                      <span class="latest-cat" data-cat={post.data.category}>{post.data.category}</span>
+                    )}
+                    <time class="latest-date">{dateStr}</time>
+                    <span class="latest-comments" data-url={`/blog/${post.id}`}></span>
+                  </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+
+      <!-- ===== 系列文集 ===== -->
+      <section class="section">
+        <h2 class="section-title">系列<span class="section-sub">series</span></h2>
+        <div class="series-grid">
+          {seriesList.map((series) => (
+            <a href={`/series/${encodeURIComponent(series.name)}`} class="series-card">
+              <div class="series-name">{series.name}</div>
+              <div class="series-meta">
+                <span class="series-count">{series.count} 篇</span>
+                <span class="series-arrow">▸</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+    </div>
+
+    <!-- 右侧侧边栏 -->
+    <aside class="home-sidebar">
+      <div class="sidebar-card status-card">
+        <h4 class="sidebar-title">状态<span class="section-sub">status</span></h4>
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-num">{totalPosts}</span>
+            <span class="status-label">文章</span>
+          </div>
+          <div class="status-item">
+            <span class="status-num">{new Set(posts.map(p => p.data.category)).size}</span>
+            <span class="status-label">分类</span>
+          </div>
+          <div class="status-item">
+            <span class="status-num">{totalTags}</span>
+            <span class="status-label">标签</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <h4 class="sidebar-title">分类<span class="section-sub">categories</span></h4>
+        <div class="category-list">
+          {[...new Set(posts.map(p => p.data.category))].filter(Boolean).map((name) => (
+            <a href={`/archive?category=${encodeURIComponent(name)}`} class="category-chip">
+              <span class="chip-name">{name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div class="sidebar-card tag-card">
+        <h4 class="sidebar-title">标签<span class="section-sub">tags</span></h4>
+        <div class="tag-tier-cloud">
+          <!-- 高频标签（≥3次）大字号权重云 -->
+          {coreTags.map(([tag, count]) => {
+            const weight = Math.max(0.75, count / maxFreq);
+            const fontSize = `${0.72 + weight * 0.4}rem`;
+            const opacity = `${0.55 + weight * 0.45}`;
+            return (
+              <a href={`/archive?tag=${encodeURIComponent(tag)}`} class:list={['tier-tag', 'tier-core']} style={`font-size:${fontSize};opacity:${opacity}`} data-count={count}>
+                {tag}
+              </a>
+            );
+          })}
+          <!-- 中频标签（2次） -->
+          {minorTags.map(([tag, count]) => (
+            <a href={`/archive?tag=${encodeURIComponent(tag)}`} class:list={['tier-tag', 'tier-mid']} data-count={count}>
+              {tag}
+            </a>
+          ))}
+        </div>
+        <!-- 低频标签（1次）可展开 -->
+        {rareTags.length > 0 && (
+          <div class="rare-tags-wrap" id="rare-tags-wrap">
+            <button class="rare-toggle" id="rare-toggle" aria-expanded="false">
+              <span class="rare-toggle-text">+ {rareTags.length} 更多标签</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="rare-tags-hidden" id="rare-tags-hidden">
+              {rareTags.map(([tag, count]) => (
+                <a href={`/archive?tag=${encodeURIComponent(tag)}`} class:list={['tier-tag', 'tier-rare']} data-count={1}>
+                  {tag}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </aside>
+  </div>
+</MainLayout>
+
+<style>
+  /* ===== HOME GRID: CSS Grid, no flex crush ===== */
+  .home-grid {
+    max-width: var(--max-width, 1200px);
+    margin: 0 auto;
+    padding: var(--gap-md, 1rem) var(--gap-lg, 2rem) 0;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--gap-lg, 2rem);
+    align-items: start;
+  }
+
+  .home-main {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* ===== Tag Tier Cloud ===== */
+  .tag-tier-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    align-items: baseline;
+  }
+
+  .tier-tag {
+    font-family: var(--font-serif);
+    text-decoration: none;
+    color: var(--text-secondary);
+    padding: 2px 0;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-bottom-color 0.15s;
+    position: relative;
+  }
+
+  .tier-tag:hover {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+  }
+
+  .tier-tag::after {
+    content: attr(data-count);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    color: var(--text-tertiary);
+    position: absolute;
+    top: -2px;
+    right: -10px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .tier-tag:hover::after {
+    opacity: 1;
+  }
+
+  .tier-core {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .tier-mid {
+    font-size: 0.78rem;
+    opacity: 0.7;
+    font-weight: 500;
+  }
+
+  /* ===== Rare Tags Toggle ===== */
+  .rare-tags-wrap {
+    margin-top: var(--gap-sm);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--gap-sm);
+  }
+
+  .rare-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px 0;
+    border: none;
+    background: none;
+    transition: color 0.15s;
+  }
+
+  .rare-toggle:hover {
+    color: var(--color-primary);
+  }
+
+  .rare-toggle svg {
+    transition: transform 0.2s;
+  }
+
+  .rare-toggle[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+  }
+
+  .rare-tags-hidden {
+    display: none;
+    flex-wrap: wrap;
+    gap: 5px 7px;
+    padding-top: var(--gap-sm);
+  }
+
+  .rare-tags-hidden.show {
+    display: flex;
+  }
+
+  .tier-rare {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-tertiary);
+    opacity: 0.5;
+    text-decoration: none;
+    transition: color 0.15s, opacity 0.15s;
+  }
+
+  .tier-rare:hover {
+    color: var(--color-primary);
+    opacity: 0.8;
+  }
+
+  .home-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: calc(var(--nav-height, 52px) + var(--gap-md, 1rem));
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-sm, 0.5rem);
+  }
+
+  /* ===== TERMINAL HERO ===== */
+  .terminal-hero {
+    max-width: var(--max-width, 1200px);
+    margin: var(--gap-lg, 2rem) auto 0;
+    padding: 0 var(--gap-lg, 2rem);
+  }
+
+  .terminal-frame {
+    border: 1px solid var(--border-color-strong, rgba(0,0,0,0.14));
+    border-radius: var(--radius-sm, 4px);
+    overflow: hidden;
+    background: var(--bg-code, #1a1a1a);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.82rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  .terminal-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #2a2a2a;
+    border-bottom: 1px solid #333;
+  }
+
+  .terminal-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #ffbd2e; }
+  .dot-g { background: #28c840; }
+
+  .terminal-title {
+    flex: 1;
+    text-align: center;
+    color: #888;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+
+  .terminal-body {
+    padding: 16px 20px;
+    color: #c8c8c8;
+    line-height: 1.8;
+  }
+
+  .terminal-line {
+    white-space: normal;
+    overflow: hidden;
+    opacity: 0;
+    animation: termFadeIn 0.3s forwards;
+  }
+
+  .terminal-line[data-index="0"] { animation-delay: 0.2s; }
+  .terminal-line[data-index="1"] { animation-delay: 0.6s; }
+  .terminal-line[data-index="2"] { animation-delay: 1.0s; }
+  .terminal-line[data-index="3"] { animation-delay: 1.4s; }
+  .terminal-line[data-index="4"] { animation-delay: 1.8s; }
+
+  @keyframes termFadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .terminal-text { color: #e8e8e8; }
+
+  .terminal-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background: var(--color-primary, #C45209);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: cursorBlink 1s step-end infinite;
+  }
+
+  @keyframes cursorBlink {
+    50% { opacity: 0; }
+  }
+
+  /* ===== NOW BAR ===== */
+  .now-bar {
+    background: var(--color-primary, #C45209);
+    color: #fff;
+    padding: 8px 0;
+    margin: var(--gap-md, 1rem) 0 var(--gap-lg, 2rem);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+  }
+
+  .now-inner {
+    max-width: var(--max-width, 1200px);
+    margin: 0 auto;
+    padding: 0 var(--gap-lg, 2rem);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .now-label {
+    font-weight: 700;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm, 4px);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+
+  .now-sep { color: rgba(255,255,255,0.5); font-size: 0.7rem; }
+  .now-sep--muted { color: rgba(255,255,255,0.3); }
+  .now-doing { font-weight: 600; }
+  .now-meta { opacity: 0.8; font-size: 0.74rem; }
+
+  /* ===== Section ===== */
+  .section { margin-bottom: var(--gap-2xl, 4rem); }
+
+  .section-title {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary, #888);
+    margin-bottom: var(--gap-md, 1rem);
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--color-primary, #C45209);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .section-sub {
+    font-weight: 400;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    color: var(--border-color-strong, rgba(0,0,0,0.14));
+    text-transform: lowercase;
+  }
+
+  /* ===== 最新文章 — Ink Editorial Magazine Style ===== */
+  .latest-section { margin-bottom: var(--gap-2xl, 4rem); }
+
+  .latest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--border-color, rgba(0,0,0,0.08));
+  }
+
+  .latest-item {
+    display: grid;
+    grid-template-columns: 3px 1fr;
+    gap: 20px;
+    padding: 18px 24px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    transition: background-color 0.15s ease, transform 0.15s ease;
+    opacity: 0;
+    animation: latestFadeIn 0.35s ease forwards;
+  }
+
+  .latest-item[data-index="0"] { animation-delay: 0.05s; }
+  .latest-item[data-index="1"] { animation-delay: 0.10s; }
+  .latest-item[data-index="2"] { animation-delay: 0.15s; }
+  .latest-item[data-index="3"] { animation-delay: 0.20s; }
+  .latest-item[data-index="4"] { animation-delay: 0.25s; }
+  .latest-item[data-index="5"] { animation-delay: 0.30s; }
+  .latest-item[data-index="6"] { animation-delay: 0.35s; }
+  .latest-item[data-index="7"] { animation-delay: 0.40s; }
+  .latest-item[data-index="8"] { animation-delay: 0.45s; }
+  .latest-item[data-index="9"] { animation-delay: 0.50s; }
+
+  @keyframes latestFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .latest-item:hover {
+    background-color: var(--color-primary-bg, rgba(196,82,9,0.03));
+  }
+
+  /* 左侧装饰线 */
+  .latest-accent {
+    width: 3px;
+    height: 100%;
+    background: transparent;
+    transition: background-color 0.15s ease;
+    align-self: stretch;
+    min-height: 28px;
+  }
+
+  .latest-item:hover .latest-accent {
+    background: var(--color-primary, #C45209);
+  }
+
+  .latest-featured {
+    padding: 24px 24px 22px;
+    background: var(--bg-card, #faf8f5);
+    position: relative;
+  }
+
+  .latest-featured::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-primary, #C45209);
+  }
+
+  .latest-featured .latest-accent {
+    background: var(--color-primary, #C45209);
+    width: 3px;
+  }
+
+  .latest-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .latest-head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .latest-title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    transition: color 0.15s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .latest-featured .latest-title {
+    font-size: 1.35rem;
+    line-height: 1.4;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .latest-item:hover .latest-title {
+    color: var(--color-primary, #C45209);
+  }
+
+  .latest-desc {
+    font-family: var(--font-serif);
+    font-size: 0.88rem;
+    color: var(--text-secondary, #555);
+    line-height: 1.7;
+    margin: 2px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.2s ease;
+    margin-top: 0;
+  }
+
+  /* 首篇始终展示描述 */
+  .latest-featured .latest-desc {
+    max-height: 60px;
+    opacity: 1;
+    margin-top: 2px;
+  }
+
+  /* hover 展开效果：所有行都变成 featured 样式 */
+  .latest-item:hover {
+    background-color: var(--bg-card, #faf8f5);
+    padding-bottom: 20px;
+  }
+
+  .latest-item:hover .latest-accent {
+    background: var(--color-primary, #C45209);
+  }
+
+  .latest-item:hover .latest-desc {
+    max-height: 60px;
+    opacity: 1;
+    margin-top: 4px;
+  }
+
+  .latest-item:hover .latest-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .latest-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
+  }
+
+  .latest-cat {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--color-primary, #C45209);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border: 1px solid var(--color-primary, #C45209);
+    border-radius: 2px;
+    opacity: 0.85;
+  }
+
+  .latest-date {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary, #999);
+    letter-spacing: 0.02em;
+    margin-left: auto;
+  }
+
+.latest-comments {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  opacity: 0.7;
+}
+.latest-comments svg {
+  width: 11px;
+  height: 11px;
+}
+
+
+  .latest-featured .latest-date {
+    font-size: 0.78rem;
+    color: var(--text-secondary, #666);
+  }
+
+  /* ===== Series Grid ===== */
+  .series-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-md, 1rem);
+  }
+
+  .series-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    text-decoration: none;
+    border: 1px solid var(--border-color, rgba(0,0,0,0.08));
+    border-radius: var(--radius-sm, 4px);
+    background: var(--bg-card, #faf8f5);
+    transition: opacity var(--transition-fast, 0.1s linear), transform var(--transition-fast, 0.1s linear), border-color var(--transition-fast, 0.1s linear), background-color var(--transition-fast, 0.1s linear), color var(--transition-fast, 0.1s linear);
+  }
+
+  .series-card:hover {
+    border-color: var(--color-primary, #C45209);
+    background: var(--color-primary-bg, rgba(196,82,9,0.06));
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover, 0 4px 12px rgba(0,0,0,0.08));
+  }
+
+  .series-name {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    transition: color var(--transition-fast, 0.1s linear);
+  }
+
+  .series-card:hover .series-name { color: var(--color-primary, #C45209); }
+
+  .series-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    color: var(--text-tertiary, #888);
+  }
+
+  .series-count {
+    white-space: nowrap;
+  }
+
+  .series-arrow {
+    color: var(--color-primary, #C45209);
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity var(--transition-fast, 0.1s linear), transform var(--transition-fast, 0.1s linear), border-color var(--transition-fast, 0.1s linear), background-color var(--transition-fast, 0.1s linear), color var(--transition-fast, 0.1s linear);
+  }
+
+  .series-card:hover .series-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ===== Status Card ===== */
+  .status-card {
+    border-left: 3px solid var(--color-primary, #C45209);
+    padding-left: var(--gap-md, 1rem);
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-sm, 0.5rem);
+  }
+
+  .status-item {
+    text-align: center;
+    padding: 8px 4px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: var(--radius-sm, 4px);
+  }
+
+  .status-num {
+    display: block;
+    font-family: var(--font-mono, monospace);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary, #C45209);
+  }
+
+  .status-label {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.65rem;
+    color: var(--text-tertiary, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .home-grid {
+      grid-template-columns: 1fr;
+      padding: var(--gap-sm) var(--gap-md) 0;
+    }
+    .home-sidebar {
+      width: 100%;
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .home-sidebar .sidebar-card {
+      flex: 1 1 calc(50% - var(--gap-sm, 0.5rem));
+      min-width: 160px;
+    }
+    .terminal-hero { padding: 0 var(--gap-md); margin-top: var(--gap-md); }
+    .terminal-body { padding: 12px 14px; font-size: 0.72rem; line-height: 1.7; }
+    .terminal-titlebar { padding: 6px 10px; }
+    .terminal-dot { width: 8px; height: 8px; }
+    .now-bar { font-size: 0.72rem; margin: var(--gap-sm) 0 var(--gap-md); }
+    .now-inner { padding: 0 var(--gap-md); gap: 6px; }
+    .latest-list { font-size: 0.9rem; }
+    .latest-item { padding: 14px 16px; gap: 14px; }
+    .latest-featured { padding: 18px 16px; }
+    .latest-title { font-size: 0.95rem; }
+    .latest-featured .latest-title { font-size: 1.15rem; }
+    .latest-desc { font-size: 0.82rem; -webkit-line-clamp: 1; }
+    .latest-date { font-size: 0.68rem; }
+    .series-grid { grid-template-columns: 1fr; }
+    .status-grid { gap: 4px; }
+    .status-num { font-size: 0.95rem; }
+    .status-label { font-size: 0.6rem; }
+  }
+
+  @media (max-width: 480px) {
+    .home-grid { padding: var(--gap-xs) var(--gap-sm) 0; }
+    .terminal-body { font-size: 0.66rem; padding: 10px 12px; }
+    .terminal-titlebar { padding: 5px 8px; }
+    .terminal-title { font-size: 0.62rem; }
+    .now-bar { font-size: 0.66rem; padding: 6px 0; }
+    .now-inner { padding: 0 var(--gap-sm); }
+    .now-label { font-size: 0.6rem; padding: 1px 6px; }
+    .now-meta { font-size: 0.66rem; }
+    .section-title { font-size: 0.66rem; }
+    .latest-list { font-size: 0.86rem; }
+    .latest-item { padding: 12px 12px; gap: 10px; }
+    .latest-featured { padding: 16px 12px; }
+    .latest-title { font-size: 0.92rem; }
+    .latest-featured .latest-title { font-size: 1.05rem; }
+    .latest-desc { display: none; }
+    .latest-date { font-size: 0.64rem; }
+    .latest-accent { width: 2px; }
+    .series-card { padding: 10px 14px; }
+    .series-name { font-size: 0.84rem; }
+    .status-grid { grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .status-item { padding: 6px 2px; }
+    .status-num { font-size: 0.85rem; }
+    .home-sidebar .sidebar-card {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .category-chip { font-size: 0.62rem; }
+    .tier-tag { font-size: 0.68rem !important; }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  var toggle = document.getElementById('rare-toggle');
+  var hidden = document.getElementById('rare-tags-hidden');
+  if (!toggle || !hidden) return;
+  toggle.addEventListener('click', function() {
+    var expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    hidden.classList.toggle('show');
+    toggle.querySelector('.rare-toggle-text').textContent = expanded ? '+ ' + hidden.querySelectorAll('.tier-rare').length + ' 更多标签' : '收起';
+  });
+})();
+</script>
+<script is:inline>
+(function _twikooCommentCountLoader() {
+  function _loadCounts() {
+    var _envId = 'https://nf.lzplus.top/';
+    var _commentEls = document.querySelectorAll('.latest-comments[data-url]');
+    if (!_commentEls.length) return;
+    
+    var _urls = [];
+    for (var _i = 0; _i < _commentEls.length; _i++) {
+      _urls.push(_commentEls[_i].getAttribute('data-url'));
+    }
+    
+    if (typeof window.twikoo === 'undefined') {
+      var _twkScript = document.createElement('script');
+      _twkScript.src = 'https://cdn.jsdelivr.net/npm/twikoo@1.7.11/dist/twikoo.min.js';
+      _twkScript.onload = function() {
+        _fetchCounts(_envId, _urls, _commentEls);
+      };
+      _twkScript.onerror = function() {};
+      document.head.appendChild(_twkScript);
+    } else {
+      _fetchCounts(_envId, _urls, _commentEls);
+    }
+  }
+  
+  function _fetchCounts(_envId, _urls, _commentEls) {
+    if (!window.twikoo || !window.twikoo.getCommentsCount) return;
+    window.twikoo.getCommentsCount({
+      envId: _envId,
+      urls: _urls,
+      includeReply: false
+    }).then(function(_res) {
+      var _urlMap = {};
+      for (var _j = 0; _j < _res.length; _j++) {
+        _urlMap[_res[_j].url] = _res[_j].count;
+      }
+      for (var _k = 0; _k < _commentEls.length; _k++) {
+        var _url = _commentEls[_k].getAttribute('data-url');
+        var _count = _urlMap[_url] || 0;
+        if (_count > 0) {
+          _commentEls[_k].innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> ' + _count;
+        }
+      }
+    }).catch(function() {});
+  }
+  
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(_loadCounts, { timeout: 5000 });
+  } else {
+    window.addEventListener('load', function() { setTimeout(_loadCounts, 2000); });
+  }
+})();
+</script>

@@ -1,0 +1,67 @@
+---
+export interface Props {
+  variant?: 'default' | 'interactive' | 'bordered';
+  padding?: 'sm' | 'md' | 'lg';
+  href?: string;
+}
+
+const {
+  variant = 'default',
+  padding = 'md',
+  href,
+} = Astro.props;
+
+const Tag = href ? 'a' : 'div';
+---
+
+{href ? (
+  <a href={href} class:list={['card', `card--${variant}`, `card--pad-${padding}`]}>
+    <slot />
+  </a>
+) : (
+  <div class:list={['card', `card--${variant}`, `card--pad-${padding}`]}>
+    <slot />
+  </div>
+)}
+
+<style>
+  .card {
+    background-color: var(--bg-card);
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    font-family: var(--font-mono);
+  }
+
+  /* Padding */
+  .card--pad-sm  { padding: var(--gap-sm); }
+  .card--pad-md  { padding: var(--gap-md); }
+  .card--pad-lg  { padding: var(--gap-lg); }
+
+  /* Default: 1px border */
+  .card--default {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Bordered: 2px border */
+  .card--bordered {
+    border: 2px solid var(--border-color-strong);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Interactive: hover border highlight */
+  .card--interactive {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    transition: border-color var(--transition-fast);
+  }
+  .card--interactive:hover {
+    border-color: var(--color-primary);
+  }
+
+  /* Dark mode */
+  [data-theme="dark"] .card--interactive:hover {
+    border-color: var(--color-primary-light);
+  }
+</style>
