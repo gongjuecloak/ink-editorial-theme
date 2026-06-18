@@ -1,7 +1,7 @@
 // Ink Editorial Theme - Astro Integration
 export default function inkEditorial(config = {}) {
   return {
-    name: 'ink-editorial-theme',
+    name: 'ink-editorial',
     hooks: {
       'astro:config:setup': ({ updateConfig }) => {
         updateConfig({

@@ -4,22 +4,22 @@
 
 ## 特性
 
-- 📝 **衬线排版** — 正文使用 Noto Serif SC，标题使用 JetBrains Mono 等宽字体
-- 🌙 **深色模式** — 自动检测系统偏好，支持手动切换
-- 🔍 **全文搜索** — 独立搜索页面，支持实时搜索
-- 💬 **评论系统** — 内置 Twikoo、Giscus 支持
-- 📊 **访问统计** — Cloudflare Web Analytics、Umami 就绪
-- 🏷️ **标签与分类** — 完整的标签、分类过滤功能
-- 📅 **更新日志** — 内置 Changelog 页面，展示版本历史
-- 🎨 **暖纸色背景** — `#FAF8F5` 护眼暖色调
-- 🔧 **零框架依赖** — 纯 Astro + 原生 JS，无 React/Vue 等框架
+- 衬线排版 — 正文使用 Noto Serif SC，标题使用 JetBrains Mono 等宽字体
+- 深色模式 — 自动检测系统偏好，支持手动切换
+- 全文搜索 — 独立搜索页面，支持实时搜索
+- 评论系统 — 内置 Twikoo、Giscus 支持
+- 访问统计 — Cloudflare Web Analytics、Umami 就绪
+- 标签与分类 — 完整的标签、分类过滤功能
+- 更新日志 — 内置 Changelog 页面，展示版本历史
+- 暖纸色背景 — `#FAF8F5` 护眼暖色调
+- 零框架依赖 — 纯 Astro + 原生 JS，无 React/Vue 等框架
 
 ## 快速开始
 
 ### 1. 安装主题
 
 ```bash
-npm install ink-editorial-theme
+npm install ink-editorial
 ```
 
 ### 2. 创建配置文件
@@ -27,7 +27,7 @@ npm install ink-editorial-theme
 将示例配置复制到项目根目录：
 
 ```bash
-cp node_modules/ink-editorial-theme/src/site.config.example.mjs ./site.config.mjs
+cp node_modules/ink-editorial/src/site.config.example.mjs ./site.config.mjs
 ```
 
 编辑 `site.config.mjs`，填入你的站点信息。
@@ -127,7 +127,7 @@ pm2 start "node dist/server/entry.mjs" --name my-blog
 
 ## 相关链接
 
-- **NPM 包**: https://www.npmjs.com/package/ink-editorial-theme
+- **NPM 包**: https://www.npmjs.com/package/ink-editorial
 - **Gitee 仓库**: https://gitee.com/gjcloak/ink-editorial-theme
 - **使用文档**: 《Ink Editorial 主题使用指南》（详见博客文章）
 
