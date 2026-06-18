@@ -1,6 +1,6 @@
 {
   "name": "ink-editorial-theme",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Ink Editorial - A minimalist, editorial-style Astro theme for blogs",
   "type": "module",
   "main": "./index.js",
