@@ -1,4 +1,4 @@
-# Ink Editorial Theme
+# Ink Editorial 主题
 
 极简编辑风格的 Astro 博客主题，设计灵感来源于传统印刷品的排版美学。
 
@@ -41,7 +41,7 @@ cp node_modules/ink-editorial-theme/src/site.config.example.mjs ./site.config.mj
 如果需要展示示例页面，创建以下数据文件：
 
 - `src/gear.json` — 装备/设备清单
-- `src/now.json` — "现在"状态更新
+- `src/now.json` —「现在」状态更新
 - `src/steam_games.json` — Steam 游戏数据（用于关于页面）
 - `src/friends.json` — 友情链接
 
@@ -86,13 +86,13 @@ npm run dev
 ```css
 :root {
   --color-primary: #C45209;      /* 主题色（铁锈橙） */
-  --bg-body: #FAF8F5;            /* 背景色（暖纸色） */
+  --bg-body: #FAF8F5;           /* 背景色（暖纸色） */
   --reading-width: 680px;        /* 阅读宽度 */
 }
 
 [data-theme="dark"] {
-  --bg-body: #1a1a1a;            /* 深色模式背景 */
-  --color-text: #e8e8e8;         /* 深色模式文字 */
+  --bg-body: #1a1a1a;           /* 深色模式背景 */
+  --color-text: #e8e8e8;        /* 深色模式文字 */
 }
 ```
 
@@ -127,9 +127,9 @@ pm2 start "node dist/server/entry.mjs" --name my-blog
 
 ## 相关链接
 
-- **NPM 包**: [https://www.npmjs.com/package/ink-editorial-theme](https://www.npmjs.com/package/ink-editorial-theme)
-- **Gitee 仓库**: [https://gitee.com/gjcloak/ink-editorial-theme](https://gitee.com/gjcloak/ink-editorial-theme)
-- **使用文档**: [《Ink Editorial 主题使用指南》](https://your-blog.com/blog/ink-editorial-theme-usage-guide)
+- **NPM 包**: https://www.npmjs.com/package/ink-editorial-theme
+- **Gitee 仓库**: https://gitee.com/gjcloak/ink-editorial-theme
+- **使用文档**: 《Ink Editorial 主题使用指南》（详见博客文章）
 
 ## 许可证
 
